@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: think_twice_app_prod
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-secret_password}@postgres:5432/${DB_NAME:-think_twice_db}?schema=public
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - NEXT_PUBLIC_APP_URL=${PROD_APP_URL}
+    command: sh -c "npm run build && npm run start"
+    depends_on:
+      - postgres
+    networks:
+      - think_twice_network

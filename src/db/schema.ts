@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, integer, timestamp } from "drizzle-orm/pg-core";
 
-export const objectTable = pgTable("objects", {
+export const objectsTable = pgTable("objects", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   price: integer("price").notNull(),
@@ -8,5 +8,5 @@ export const objectTable = pgTable("objects", {
   reviewAt: timestamp("review_at").notNull(),
 });
 
-export type InsertObject = typeof objectTable.$inferInsert;
-export type SelectObject = typeof objectTable.$inferSelect;
+export type InsertObject = typeof objectsTable.$inferInsert;
+export type SelectObject = typeof objectsTable.$inferSelect;

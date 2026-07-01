@@ -1,4 +1,4 @@
-import { objectTable } from "@/db/schema";
+import { objectsTable } from "@/db/schema";
 import { InsertObject, SelectObject } from "@/db/schema";
 
 export class DrizzleObjectRepository {
@@ -8,7 +8,7 @@ export class DrizzleObjectRepository {
     data: Omit<InsertObject, "id" | "createdAt">,
   ): Promise<SelectObject> {
     const [inserted] = await this.db
-      .insert(objectTable)
+      .insert(objectsTable)
       .values({
         name: data.name,
         price: data.price,

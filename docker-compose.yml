@@ -13,6 +13,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - think_twice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-think_twice_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
 networks:
   think_twice_network:

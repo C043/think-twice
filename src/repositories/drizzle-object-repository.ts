@@ -18,4 +18,8 @@ export class DrizzleObjectRepository {
 
     return inserted;
   }
+
+  async findAll() {
+    return await this.db.select().from(objectsTable);
+  }
 }

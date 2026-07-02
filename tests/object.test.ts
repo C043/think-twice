@@ -4,9 +4,10 @@ import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { objectsTable } from "@/db/schema";
-import { handlePost } from "@/app/api/objects/route";
+import { handlePost, handleSelect } from "@/app/api/objects/route";
 import { AddObjectUseCase } from "../src/use-cases/add-object";
 import { DrizzleObjectRepository } from "../src/repositories/drizzle-object-repository";
+import { SelectObjectUseCase } from "@/use-cases/select-object";
 
 describe("Add Object Feature", () => {
   let pg: PGlite;
@@ -105,5 +106,56 @@ describe("Add Object Feature", () => {
     const dbRows = await db.select().from(objectsTable);
     assert.strictEqual(dbRows.length, 1);
     assert.strictEqual(dbRows[0].name, "Nintendo Switch");
+  });
+});
+
+describe("Select Objects Feature", () => {
+  let pg: PGlite;
+  let db: any;
+  let objectRepository: DrizzleObjectRepository;
+  let selectObjectUseCase: SelectObjectUseCase;
+  let addObjectUseCase: AddObjectUseCase;
+
+  beforeEach(async () => {
+    pg = new PGlite();
+    db = drizzle(pg);
+
+    await migrate(db, { migrationsFolder: "./drizzle" });
+
+    objectRepository = new DrizzleObjectRepository(db);
+    selectObjectUseCase = new SelectObjectUseCase(objectRepository);
+    addObjectUseCase = new AddObjectUseCase(objectRepository);
+
+    const input = {
+      name: "Nintendo Switch",
+      price: 30000,
+      reviewDays: 30,
+    };
+
+    await addObjectUseCase.execute(input);
+    await addObjectUseCase.execute(input);
+  });
+
+  afterEach(async () => {
+    await pg.close();
+  });
+
+  test("should return 2 rows after saving two objects", async () => {
+    const dbRows = await selectObjectUseCase.execute();
+    assert.strictEqual(dbRows.length, 2);
+    assert.strictEqual(dbRows[0].name, "Nintendo Switch");
+  });
+
+  test("should return 2 rows with 200 from the API when requesting", async () => {
+    const mockRequest = new Request("http://localhost:3000/api/objects", {
+      method: "GET",
+    });
+
+    const resp = await handleSelect(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 200);
+    assert.strictEqual(json.length, 2);
+    assert.ok(Array.isArray(json), "Responce should be of array type");
   });
 });

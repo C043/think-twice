@@ -27,19 +27,20 @@ export default async function ObjectList() {
       {objects.map((obj: SelectObject) => (
         <li
           key={obj.id}
-          className="p-3 border dark:border-zinc-800 rounded-xl flex justify-between bg-zinc-50/50 dark:bg-zinc-900/50 items-center"
+          className="mb-3 border dark:border-zinc-800 rounded-xl flex justify-between bg-zinc-50/50 dark:bg-zinc-900/50 items-center"
         >
-          <span className="font-medium text-black dark:text-white">
-            {obj.name}
-          </span>
-          <div className="flex gap-2 items-center">
-            <span className="text-zinc-500">
-              {(obj.price / 100).toFixed(2)}
-            </span>
-            <span>
-              <DeleteObjectComponent objectId={obj.id} objectName={obj.name} />
-            </span>
-          </div>
+          <DeleteObjectComponent objectId={obj.id} objectName={obj.name}>
+            <div className="p-3">
+              <span className="font-medium text-black dark:text-white">
+                {obj.name}
+              </span>
+              <div className="flex gap-2 items-center">
+                <span className="text-zinc-500">
+                  {(obj.price / 100).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </DeleteObjectComponent>
         </li>
       ))}
     </ul>

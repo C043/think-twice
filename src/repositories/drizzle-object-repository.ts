@@ -1,5 +1,6 @@
 import { objectsTable } from "@/db/schema";
 import { InsertObject, SelectObject } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export class DrizzleObjectRepository {
   constructor(private db: any) {}
@@ -21,5 +22,9 @@ export class DrizzleObjectRepository {
 
   async findAll() {
     return await this.db.select().from(objectsTable);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.db.delete(objectsTable).where(eq(objectsTable.id, id));
   }
 }

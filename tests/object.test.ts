@@ -4,10 +4,15 @@ import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { objectsTable } from "@/db/schema";
-import { handlePost, handleSelect } from "@/app/api/objects/route";
+import {
+  handleDelete,
+  handlePost,
+  handleSelect,
+} from "@/app/api/objects/route";
 import { AddObjectUseCase } from "../src/use-cases/add-object";
 import { DrizzleObjectRepository } from "../src/repositories/drizzle-object-repository";
 import { SelectObjectUseCase } from "@/use-cases/select-object";
+import { DeleteObjectUseCase } from "@/use-cases/delete-object";
 
 describe("Add Object Feature", () => {
   let pg: PGlite;
@@ -157,5 +162,80 @@ describe("Select Objects Feature", () => {
     assert.strictEqual(resp.status, 200);
     assert.strictEqual(json.length, 2);
     assert.ok(Array.isArray(json), "Responce should be of array type");
+  });
+});
+
+describe("Remove Object Feature", () => {
+  let pg: PGlite;
+  let db: any;
+  let objectRepository: DrizzleObjectRepository;
+  let addObjectUseCase: AddObjectUseCase;
+  let selectObjectUseCase: SelectObjectUseCase;
+  let deleteObjectUseCase: DeleteObjectUseCase;
+  let id: string;
+
+  beforeEach(async () => {
+    pg = new PGlite();
+    db = drizzle(pg);
+
+    await migrate(db, { migrationsFolder: "./drizzle" });
+
+    objectRepository = new DrizzleObjectRepository(db);
+    addObjectUseCase = new AddObjectUseCase(objectRepository);
+    selectObjectUseCase = new SelectObjectUseCase(objectRepository);
+    deleteObjectUseCase = new DeleteObjectUseCase(objectRepository);
+
+    const input = {
+      name: "Nintendo Switch",
+      price: 30000,
+      reviewDays: 30,
+    };
+
+    const result = await addObjectUseCase.execute(input);
+
+    id = result.id;
+  });
+
+  afterEach(async () => {
+    await pg.close();
+  });
+
+  test("should delete object by id", async () => {
+    let dbRows = await db.select().from(objectsTable);
+    assert.strictEqual(dbRows.length, 1);
+
+    await deleteObjectUseCase.execute(id);
+
+    dbRows = await db.select().from(objectsTable);
+    assert.strictEqual(dbRows.length, 0);
+  });
+
+  test("should do nothing if id is not present", async () => {
+    await deleteObjectUseCase.execute(id);
+
+    let dbRows = await db.select().from(objectsTable);
+    assert.strictEqual(dbRows.length, 0);
+
+    await deleteObjectUseCase.execute(id);
+
+    dbRows = await db.select().from(objectsTable);
+    assert.strictEqual(dbRows.length, 0);
+  });
+
+  test("should delete object through the api", async () => {
+    const mockRequest = new Request(
+      `http://localhost:3000/api/objects?id=${id}`,
+      {
+        method: "DELETE",
+      },
+    );
+    const resp = await handleDelete(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 200);
+    assert.strictEqual(json.message, "Deleted");
+
+    const dbRows = await db.select().from(objectsTable);
+    assert.strictEqual(dbRows.length, 0);
   });
 });

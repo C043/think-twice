@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
-import { objectsTable } from "@/db/schema";
+import { objectsTable, SelectObject } from "@/db/schema";
+import DeleteObjectComponent from "./DeleteObjectComponent";
 
 async function getObjects() {
   try {
@@ -22,16 +23,23 @@ export default async function ObjectList() {
   }
 
   return (
-    <ul className="space-y-2 w-full">
-      {objects.map((obj: any) => (
+    <ul className="m-y-10 w-full">
+      {objects.map((obj: SelectObject) => (
         <li
           key={obj.id}
-          className="p-3 border dark:border-zinc-800 rounded-xl flex justify-between bg-zinc-50/50 dark:bg-zinc-900/50"
+          className="p-3 border dark:border-zinc-800 rounded-xl flex justify-between bg-zinc-50/50 dark:bg-zinc-900/50 items-center"
         >
           <span className="font-medium text-black dark:text-white">
             {obj.name}
           </span>
-          <span className="text-zinc-500">{(obj.price / 100).toFixed(2)}</span>
+          <div className="flex gap-2 items-center">
+            <span className="text-zinc-500">
+              {(obj.price / 100).toFixed(2)}
+            </span>
+            <span>
+              <DeleteObjectComponent objectId={obj.id} objectName={obj.name} />
+            </span>
+          </div>
         </li>
       ))}
     </ul>

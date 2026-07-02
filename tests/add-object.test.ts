@@ -51,7 +51,7 @@ describe("Add Object Feature", () => {
     assert.strictEqual(rows[0].name, "4K Monitor");
   });
 
-  test("should respond with 400 if sent data are not valid", async () => {
+  test("should respond with 400 if sent object name is not valid", async () => {
     const mockRequest = new Request("http://localhost:3000/api/objects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -66,6 +66,23 @@ describe("Add Object Feature", () => {
 
     assert.strictEqual(resp.status, 400);
     assert.strictEqual(json.error, "Object name is mandatory.");
+  });
+
+  test("should respond with 400 if sent object price is not valid", async () => {
+    const mockRequest = new Request("http://localhost:3000/api/objects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Mechanical Keyboard",
+        price: -1,
+        reviewDays: 14,
+      }),
+    });
+    const resp = await handlePost(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 400);
+    assert.strictEqual(json.error, "Price needs to be more than 0");
   });
 
   test("should save the object in the database with the right timestamps", async () => {

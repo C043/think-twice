@@ -13,19 +13,15 @@ export default function AddObjectComponent() {
     price: number;
     reviewDays: number;
   }) => {
-    try {
-      const resp = await fetch("/api/objects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!resp.ok) {
-        throw new Error("Error during object saving.");
-      }
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error(err);
+    const resp = await fetch("/api/objects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    if (!resp.ok) {
+      throw new Error("Error during object saving.");
     }
+    setIsModalOpen(false);
   };
   return (
     <>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ObjectFormProps {
   initialData?: { name: string; price: number; reviewDays: number };
@@ -33,9 +34,14 @@ export default function ObjectForm({
     try {
       setLoading(true);
       await onSubmit({ name, price: priceInCents, reviewDays });
+      toast.success(
+        initialData
+          ? "Object edited successfully!"
+          : "Object saved successfully!",
+      );
     } catch (err) {
       setError(true);
-      // TODO - Add error components
+      toast.error("There was an error saving the object, try again.");
     } finally {
       setLoading(false);
     }

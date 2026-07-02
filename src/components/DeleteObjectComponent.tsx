@@ -49,7 +49,7 @@ export default function DeleteObjectComponent({
             type="button"
             onClick={() => setIsModalOpen(true)}
             className="bg-red-600 text-white px-5 text-sm font-medium shrink-0 snap-end flex items-center justify-center rounded-r-xl"
-            style={{ width: "80px" }}
+            style={{ width: "100px" }}
           >
             Delete
           </button>

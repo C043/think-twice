@@ -9,12 +9,14 @@ interface ObjectFormProps {
     reviewDays: number;
   }) => Promise<void>;
   onCancel: () => void;
+  onSuccess: () => void;
 }
 
 export default function ObjectForm({
   initialData,
   onSubmit,
   onCancel,
+  onSuccess,
 }: ObjectFormProps) {
   const [name, setName] = useState(initialData?.name || "");
   const [price, setPrice] = useState(
@@ -39,6 +41,7 @@ export default function ObjectForm({
           ? "Object edited successfully!"
           : "Object saved successfully!",
       );
+      onSuccess();
     } catch (err) {
       setError(true);
       toast.error("There was an error saving the object, try again.");

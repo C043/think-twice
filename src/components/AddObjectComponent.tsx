@@ -2,11 +2,13 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Modal from "./ModalComponent";
 import ObjectForm from "./ObjectForm";
 
 export default function AddObjectComponent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   const handleCreateObject = async (formData: {
     name: string;
@@ -23,11 +25,17 @@ export default function AddObjectComponent() {
     }
     setIsModalOpen(false);
   };
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    router.refresh();
+  };
+
   return (
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 border rounded-4xl dark:text-white text-black"
+        className="fixed bottom-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 border rounded-4xl dark:text-white text-black"
       >
         <Plus className="h-5 w-5" />
       </button>
@@ -36,6 +44,7 @@ export default function AddObjectComponent() {
         <ObjectForm
           onSubmit={handleCreateObject}
           onCancel={() => setIsModalOpen(false)}
+          onSuccess={handleSuccess}
         />
       </Modal>
     </>

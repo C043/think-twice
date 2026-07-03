@@ -238,4 +238,15 @@ describe("Remove Object Feature", () => {
     const dbRows = await db.select().from(objectsTable);
     assert.strictEqual(dbRows.length, 0);
   });
+
+  test("should throw if id is not in the url", async () => {
+    const mockRequest = new Request(`http://localhost:3000/api/objects`, {
+      method: "DELETE",
+    });
+    const resp = await handleDelete(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 400);
+    assert.strictEqual(json.error, "Missing object ID");
+  });
 });

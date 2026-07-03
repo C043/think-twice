@@ -1,6 +1,5 @@
 import { db } from "@/db/client";
-import { objectsTable, SelectObject } from "@/db/schema";
-import DeleteObjectComponent from "./DeleteObjectComponent";
+import { objectsTable } from "@/db/schema";
 import ObjectListClient from "./ObjectListClient";
 
 async function getObjects() {

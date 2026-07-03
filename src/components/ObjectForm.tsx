@@ -61,7 +61,7 @@ export default function ObjectForm({
         </h2>
 
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-slate-300">
+          <label className="block text-sm font-medium mb-1 text-black dark:text-slate-300">
             Name
           </label>
           <input
@@ -69,12 +69,12 @@ export default function ObjectForm({
             required
             value={name}
             onChange={(ev) => setName(ev.target.value)}
-            className="w-full p-2 border rounded-lg bg-transparent dark:text-white"
+            className="w-full p-2 border rounded-lg bg-transparent text-black dark:text-white"
             placeholder="Es. Nintendo Switch"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-slate-300">
+          <label className="block text-sm font-medium mb-1 text-black dark:text-slate-300">
             Price
           </label>
           <input
@@ -83,12 +83,12 @@ export default function ObjectForm({
             required
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="w-full p-2 border rounded-lg bg-transparent dark:text-white"
+            className="w-full p-2 border rounded-lg bg-transparent text-black dark:text-white"
             placeholder="1.00"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-slate-300">
+          <label className="block text-sm font-medium mb-1 text-black dark:text-slate-300">
             Days to wait
           </label>
           <input
@@ -96,7 +96,7 @@ export default function ObjectForm({
             required
             value={reviewDays}
             onChange={(e) => setReviewDays(parseInt(e.target.value))}
-            className="w-full p-2 border rounded-lg bg-transparent dark:text-white"
+            className="w-full p-2 border rounded-lg bg-transparent text-black dark:text-white"
             placeholder="30"
           />
         </div>
@@ -104,7 +104,7 @@ export default function ObjectForm({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 p-2 border rounded-lg text-sm font-medium"
+            className="flex-1 p-2 border rounded-lg text-sm font-medium text-black dark:text-white"
           >
             Cancel
           </button>

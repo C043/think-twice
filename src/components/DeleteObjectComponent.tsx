@@ -61,7 +61,7 @@ export default function DeleteObjectComponent({
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="me-3 p-2 border rounded-xl border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-950/20 transition-colors shrink-0"
+          className="me-3 p-2 border rounded-xl border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-950/50 transition-colors shrink-0"
           title="Delete object"
         >
           <Trash2 className="h-4 w-4" />
@@ -88,7 +88,7 @@ export default function DeleteObjectComponent({
               type="button"
               disabled={loading}
               onClick={() => setIsModalOpen(false)}
-              className="flex-1 p-2 border rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+              className="flex-1 p-2 border rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
             >
               Cancel
             </button>

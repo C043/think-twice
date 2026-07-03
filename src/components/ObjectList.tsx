@@ -1,6 +1,7 @@
 import { db } from "@/db/client";
 import { objectsTable, SelectObject } from "@/db/schema";
 import DeleteObjectComponent from "./DeleteObjectComponent";
+import ObjectListClient from "./ObjectListClient";
 
 async function getObjects() {
   try {
@@ -21,7 +22,7 @@ export default async function ObjectList() {
       </p>
     );
   }
-
+  return <ObjectListClient initialObjects={objects} />;
   return (
     <ul className="m-y-10 w-full">
       {objects.map((obj: SelectObject) => (

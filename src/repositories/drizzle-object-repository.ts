@@ -20,6 +20,29 @@ export class DrizzleObjectRepository {
     return inserted;
   }
 
+  async update(
+    id: string,
+    data: { name: string; price: number; reviewAt: Date },
+  ) {
+    const [updatedRecord] = await this.db
+      .update(objectsTable)
+      .set(data)
+      .where(eq(objectsTable.id, id))
+      .returning();
+
+    return updatedRecord;
+  }
+
+  async findById(id: string): Promise<SelectObject> {
+    const [record] = await this.db
+      .select()
+      .from(objectsTable)
+      .where(eq(objectsTable.id, id))
+      .limit(1);
+
+    return record;
+  }
+
   async findAll() {
     return await this.db.select().from(objectsTable);
   }

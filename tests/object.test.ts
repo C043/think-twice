@@ -13,6 +13,7 @@ import { AddObjectUseCase } from "../src/use-cases/add-object";
 import { DrizzleObjectRepository } from "../src/repositories/drizzle-object-repository";
 import { SelectObjectUseCase } from "@/use-cases/select-object";
 import { DeleteObjectUseCase } from "@/use-cases/delete-object";
+import { PutObjectUseCase } from "@/use-cases/put-object";
 
 describe("Add Object Feature", () => {
   let pg: PGlite;
@@ -248,5 +249,63 @@ describe("Remove Object Feature", () => {
 
     assert.strictEqual(resp.status, 400);
     assert.strictEqual(json.error, "Missing object ID");
+  });
+});
+
+describe("Editing Object Feature", () => {
+  let pg: PGlite;
+  let db: any;
+  let objectRepository: DrizzleObjectRepository;
+  let addObjectUseCase: AddObjectUseCase;
+  let selectObjectUseCase: SelectObjectUseCase;
+  let putObjectUseCase: PutObjectUseCase;
+  let id: string;
+
+  beforeEach(async () => {
+    pg = new PGlite();
+    db = drizzle(pg);
+
+    await migrate(db, { migrationsFolder: "./drizzle" });
+
+    objectRepository = new DrizzleObjectRepository(db);
+    addObjectUseCase = new AddObjectUseCase(objectRepository);
+    selectObjectUseCase = new SelectObjectUseCase(objectRepository);
+    putObjectUseCase = new PutObjectUseCase(objectRepository);
+
+    const input = {
+      name: "Nintendo Switch",
+      price: 30000,
+      reviewDays: 30,
+    };
+
+    const result = await addObjectUseCase.execute(input);
+
+    id = result.id;
+  });
+
+  afterEach(async () => {
+    await pg.close();
+  });
+
+  test("should edit object by id with new data", async () => {
+    const input = {
+      name: "Different Object",
+      price: 50000,
+      reviewDays: 10,
+    };
+
+    const result = await putObjectUseCase.execute(id, input);
+
+    assert.strictEqual(result.name, input.name);
+    assert.strictEqual(result.price, input.price);
+
+    const diffInMs = result.reviewAt.getTime() - result.createdAt.getTime();
+    const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+    assert.strictEqual(diffInDays, 10);
+
+    const dbRows = await db.select().from(objectsTable);
+    assert.strictEqual(dbRows.length, 1);
+    assert.strictEqual(dbRows[0].name, "Different Object");
+    assert.strictEqual(dbRows[0].price, 50000);
   });
 });

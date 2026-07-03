@@ -1,3 +1,4 @@
+import { AppError } from "@/errors/AppError";
 import { DrizzleObjectRepository } from "@/repositories/drizzle-object-repository";
 
 interface AddObjectInput {
@@ -11,10 +12,10 @@ export class AddObjectUseCase {
 
   async execute(input: AddObjectInput) {
     if (!input.name || input.name.trim() === "") {
-      throw new Error("Object name is mandatory.");
+      throw new AppError("Object name is mandatory", 400);
     }
     if (input.price <= 0) {
-      throw new Error("Price needs to be more than 0");
+      throw new AppError("Price needs to be more than 0", 400);
     }
 
     const createdAt = new Date();

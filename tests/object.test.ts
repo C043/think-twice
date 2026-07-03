@@ -7,6 +7,7 @@ import { objectsTable } from "@/db/schema";
 import {
   handleDelete,
   handlePost,
+  handlePut,
   handleSelect,
 } from "@/app/api/objects/route";
 import { AddObjectUseCase } from "../src/use-cases/add-object";
@@ -72,7 +73,7 @@ describe("Add Object Feature", () => {
     const json = await resp.json();
 
     assert.strictEqual(resp.status, 400);
-    assert.strictEqual(json.error, "Object name is mandatory.");
+    assert.strictEqual(json.error, "Object name is mandatory");
   });
 
   test("should respond with 400 if sent object price is not valid", async () => {
@@ -307,5 +308,81 @@ describe("Editing Object Feature", () => {
     assert.strictEqual(dbRows.length, 1);
     assert.strictEqual(dbRows[0].name, "Different Object");
     assert.strictEqual(dbRows[0].price, 50000);
+  });
+
+  test("should put object through the api with new data", async () => {
+    const input = {
+      name: "Different Object",
+      price: 50000,
+      reviewDays: 10,
+    };
+
+    const mockRequest = new Request(
+      `http://localhost:3000/api/objects?id=${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: input.name,
+          price: input.price,
+          reviewDays: input.reviewDays,
+        }),
+      },
+    );
+
+    const resp = await handlePut(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 200);
+    assert.strictEqual(json.message, "Updated");
+
+    const rows = await db.select().from(objectsTable);
+    assert.strictEqual(rows.length, 1);
+    assert.strictEqual(rows[0].name, "Different Object");
+  });
+
+  test("should respond with 400 if sent object price is not valid", async () => {
+    const mockRequest = new Request(
+      `http://localhost:3000/api/objects?id=${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Mechanical Keyboard",
+          price: -1,
+          reviewDays: 14,
+        }),
+      },
+    );
+
+    const resp = await handlePut(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 400);
+    assert.strictEqual(json.error, "Price needs to be more than 0");
+  });
+
+  test("should throw if id is not in the url", async () => {
+    const input = {
+      name: "Different Object",
+      price: 50000,
+      reviewDays: 10,
+    };
+
+    const mockRequest = new Request(`http://localhost:3000/api/objects`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: input.name,
+        price: input.price,
+        reviewDays: input.reviewDays,
+      }),
+    });
+
+    const resp = await handleDelete(mockRequest, db);
+    const json = await resp.json();
+
+    assert.strictEqual(resp.status, 400);
+    assert.strictEqual(json.error, "Missing object ID");
   });
 });

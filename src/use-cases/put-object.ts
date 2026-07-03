@@ -1,3 +1,4 @@
+import { AppError } from "@/errors/AppError";
 import { DrizzleObjectRepository } from "@/repositories/drizzle-object-repository";
 
 interface PutObjectInput {
@@ -11,16 +12,16 @@ export class PutObjectUseCase {
 
   async execute(id: string, input: PutObjectInput) {
     if (!input.name || input.name.trim() === "") {
-      throw new Error("Object name is mandatory.");
+      throw new AppError("Object name is mandatory", 400);
     }
     if (input.price <= 0) {
-      throw new Error("Price needs to be more than 0");
+      throw new AppError("Price needs to be more than 0", 400);
     }
 
     const found = await this.objectRepository.findById(id);
 
     if (!found) {
-      throw new Error("Object not found");
+      throw new AppError("Object not found", 404);
     }
 
     const createdAt = found.createdAt;

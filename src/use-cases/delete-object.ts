@@ -1,3 +1,4 @@
+import { AppError } from "@/errors/AppError";
 import { DrizzleObjectRepository } from "@/repositories/drizzle-object-repository";
 
 export class DeleteObjectUseCase {
@@ -5,7 +6,7 @@ export class DeleteObjectUseCase {
 
   async execute(id: string): Promise<void> {
     if (!id) {
-      throw new Error("Object Id is required for deletion");
+      throw new AppError("Object Id is required for deletion", 400);
     }
 
     await this.objectRepository.delete(id);

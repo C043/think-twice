@@ -4,6 +4,8 @@ import { DrizzleObjectRepository } from "@/repositories/drizzle-object-repositor
 import { AddObjectUseCase } from "@/use-cases/add-object";
 import { SelectObjectUseCase } from "@/use-cases/select-object";
 import { DeleteObjectUseCase } from "@/use-cases/delete-object";
+import { PutObjectUseCase } from "@/use-cases/put-object";
+import { AppError } from "@/errors/AppError";
 
 export async function handlePost(request: Request, db = realDb) {
   try {
@@ -21,15 +23,49 @@ export async function handlePost(request: Request, db = realDb) {
 
     return NextResponse.json(newObject, { status: 201 });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Internal server error" },
-      { status: 400 },
-    );
+    const status = err.status || 500;
+    return NextResponse.json({ error: err.message }, { status });
   }
 }
 
 export async function POST(request: Request) {
   return handlePost(request, realDb);
+}
+
+export async function handlePut(request: Request, db = realDb) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      throw new AppError("Missing object ID", 400);
+    }
+
+    const body = await request.json();
+
+    const repository = new DrizzleObjectRepository(db);
+
+    const putObjectUseCase = new PutObjectUseCase(repository);
+
+    const updatedObject = await putObjectUseCase.execute(id, {
+      name: body.name,
+      price: body.price,
+      reviewDays: body.reviewDays,
+    });
+
+    return NextResponse.json({
+      message: "Updated",
+      updatedObject,
+      status: 200,
+    });
+  } catch (err: any) {
+    const status = err.status || 500;
+    return NextResponse.json({ error: err.message }, { status });
+  }
+}
+
+export async function PUT(request: Request) {
+  return handlePut(request, realDb);
 }
 
 export async function handleSelect(request: Request, db = realDb) {
@@ -41,10 +77,8 @@ export async function handleSelect(request: Request, db = realDb) {
     const dbRows = await selectObjectUseCase.execute();
     return NextResponse.json(dbRows, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Internal server error" },
-      { status: 500 },
-    );
+    const status = err.status || 500;
+    return NextResponse.json({ error: err.message }, { status });
   }
 }
 
@@ -68,10 +102,8 @@ export async function handleDelete(request: Request, db = realDb) {
     await deleteObjectUseCase.execute(id);
     return NextResponse.json({ message: "Deleted" }, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Internal server error" },
-      { status: 500 },
-    );
+    const status = err.status || 500;
+    return NextResponse.json({ error: err.message }, { status });
   }
 }
 

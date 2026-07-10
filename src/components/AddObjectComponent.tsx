@@ -33,12 +33,15 @@ export default function AddObjectComponent() {
 
   return (
     <>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 border rounded-4xl dark:text-white text-black"
-      >
-        <Plus className="h-5 w-5" />
-      </button>
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="w-14 h-14 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 rounded-full bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xl hover:scale-110 active:scale-95 transition-all cursor-pointer pointer-events-auto"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ObjectForm

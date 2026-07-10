@@ -110,7 +110,7 @@ export default function ObjectListClient({
   };
 
   return (
-    <div>
+    <div className="pb-24">
       <ul className="m-y-10 w-full">
         {initialObjects.map((obj: SelectObject) => {
           const progress = calculateProgressPercentage(obj);

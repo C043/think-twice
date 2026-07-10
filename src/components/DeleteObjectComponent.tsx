@@ -20,6 +20,7 @@ export default function DeleteObjectComponent({
           <div className="w-full shrink-0 snap-start">{children}</div>
           <button
             type="button"
+            onClick={onDeleteClick} // 🚀 Scatena l'apertura del modale centralizzato
             className="bg-red-600 text-white px-5 text-sm font-medium shrink-0 snap-end flex items-center justify-center rounded-r-xl"
             style={{ width: "100px" }}
           >
@@ -32,6 +33,7 @@ export default function DeleteObjectComponent({
         <div className="flex-1">{children}</div>
         <button
           type="button"
+          onClick={onDeleteClick}
           className="me-3 p-2 border rounded-xl border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-950/50 transition-colors shrink-0"
           title="Delete object"
         >

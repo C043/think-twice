@@ -1,4 +1,5 @@
 export async function register() {
-  const { startTestTimer } = await import("./lib/scheduled-worker");
+  const { checkReviewsJob: startTestTimer } =
+    await import("./lib/scheduled-worker");
   startTestTimer();
 }

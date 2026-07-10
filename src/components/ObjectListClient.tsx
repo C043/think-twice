@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import DeleteObjectComponent from "./DeleteObjectComponent";
 import ObjectForm from "./ObjectForm";
 import Modal from "./ModalComponent";
+import { toast } from "sonner";
 
 interface ObjectListClientProps {
   initialObjects: SelectObject[];
@@ -16,10 +17,11 @@ export default function ObjectListClient({
 }: ObjectListClientProps) {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedObject, setSelectedObject] = useState<SelectObject | null>(
     null,
   );
-
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -58,9 +60,15 @@ export default function ObjectListClient({
     setIsEditModalOpen(true);
   };
 
-  const handleCloseEdit = () => {
+  const handleOpenDelete = (obj: SelectObject) => {
+    setSelectedObject(obj);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseModals = () => {
     setSelectedObject(null);
     setIsEditModalOpen(false);
+    setIsDeleteModalOpen(false);
   };
 
   const handleUpdateSubmit = async (data: {
@@ -80,6 +88,27 @@ export default function ObjectListClient({
       throw new Error(errData.error || "Failed to update object");
     }
   };
+
+  const handleDeleteSubmit = async () => {
+    if (!selectedObject) return;
+    setLoadingDelete(true);
+    try {
+      const resp = await fetch(`/api/objects?id=${selectedObject.id}`, {
+        method: "DELETE",
+      });
+
+      if (!resp.ok) throw new Error();
+
+      toast.success("Object deleted successfully!");
+      handleCloseModals();
+      router.refresh();
+    } catch (err) {
+      toast.error("There was an error deleting the object.");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
   return (
     <div>
       <ul className="m-y-10 w-full">
@@ -96,7 +125,12 @@ export default function ObjectListClient({
                 style={{ width: `${progress}%` }}
               />
               <div className="relative z-20 w-full flex justify-between items-center bg-transparent">
-                <DeleteObjectComponent objectId={obj.id} objectName={obj.name}>
+                {/*Passiamo la funzione handleOpenDelete al figlio, senza annidare modali qui*/}
+                <DeleteObjectComponent
+                  objectId={obj.id}
+                  objectName={obj.name}
+                  onDeleteClick={() => handleOpenDelete(obj)}
+                >
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(obj)}
@@ -119,7 +153,8 @@ export default function ObjectListClient({
           );
         })}
       </ul>
-      <Modal isOpen={isEditModalOpen} onClose={handleCloseEdit}>
+
+      <Modal isOpen={isEditModalOpen} onClose={handleCloseModals}>
         {selectedObject && (
           <ObjectForm
             initialData={{
@@ -128,12 +163,50 @@ export default function ObjectListClient({
               reviewDays: calculateReviewDays(selectedObject),
             }}
             onSubmit={handleUpdateSubmit}
-            onCancel={handleCloseEdit}
+            onCancel={handleCloseModals}
             onSuccess={() => {
-              handleCloseEdit();
+              handleCloseModals();
               router.refresh();
             }}
           />
+        )}
+      </Modal>
+
+      <Modal isOpen={isDeleteModalOpen} onClose={handleCloseModals}>
+        {selectedObject && (
+          <div className="flex flex-col h-full justify-between gap-4 p-5 text-left">
+            <div className="space-y-3">
+              <h2 className="text-xl font-bold dark:text-white text-black">
+                Are you absolutely sure?
+              </h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                This will permanently delete{" "}
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                  "{selectedObject.name}"
+                </span>
+                .
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-4 border-t dark:border-zinc-800">
+              <button
+                type="button"
+                disabled={loadingDelete}
+                onClick={handleCloseModals}
+                className="flex-1 p-2 border rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={loadingDelete}
+                onClick={handleDeleteSubmit}
+                className="flex-1 p-2 bg-red-600 text-white rounded-lg text-sm font-medium"
+              >
+                {loadingDelete ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         )}
       </Modal>
     </div>

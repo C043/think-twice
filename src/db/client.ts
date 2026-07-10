@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
+import { startScheduledWorker } from "@/lib/scheduled-worker";
 
 export type DrizzleClient = ReturnType<typeof drizzle<typeof schema>>;
 

@@ -11,6 +11,7 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-secret_password}@postgres:5432/${DB_NAME:-think_twice_db}?schema=public
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
       - NEXT_PUBLIC_APP_URL=${PROD_APP_URL}
     command: sh -c "npm run build && npm run start"
     depends_on:

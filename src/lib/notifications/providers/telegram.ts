@@ -22,6 +22,7 @@ export class TelegramProvider implements NotificationProvider {
       const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
 
       const resp = await fetch(url, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },

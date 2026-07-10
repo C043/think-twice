@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import test, { afterEach, beforeEach, describe } from "node:test";
-import { checkReviewsJob } from "./scheduled-worker";
+import { checkReviewsJob, notificationService } from "./scheduled-worker";
 import assert from "node:assert";
 import { randomUUID } from "node:crypto";
 
@@ -16,10 +16,16 @@ describe("Scheduled Worker Integration Feature", () => {
     db = drizzle(pg);
 
     await migrate(db, { migrationsFolder: "./drizzle" });
+
+    notificationService.registerProvider({
+      id: "mock-provider",
+      send: async () => true,
+    });
   });
 
   afterEach(async () => {
     await pg.close();
+    (notificationService as any).providers = [];
   });
 
   test("should process expired objects using PGlite", async () => {

@@ -3,7 +3,7 @@ export async function register() {
     setTimeout(async () => {
       try {
         const { startScheduledWorker } = await import("./lib/scheduled-worker");
-        startScheduledWorker();
+        await startScheduledWorker();
       } catch (error) {
         console.error("Failed to start worker from instrumentation:", error);
       }

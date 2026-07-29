@@ -1,6 +1,8 @@
 import AddObjectComponent from "@/components/AddObjectComponent";
 import ThemeToggle from "@/components/ThemeToggle";
 import ObjectList from "@/components/ObjectList";
+import PushNotificationsToggle from "@/components/PushNotificationsToggle";
+import InstallPwaButton from "@/components/InstallPwaButton";
 
 export default function Home() {
   return (
@@ -12,7 +14,11 @@ export default function Home() {
               Think Twice
             </h1>
 
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <InstallPwaButton />
+              <PushNotificationsToggle />
+              <ThemeToggle />
+            </div>
           </div>
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             The solution to{" "}

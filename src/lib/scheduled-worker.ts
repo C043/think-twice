@@ -3,16 +3,36 @@ import { and, lt, eq } from "drizzle-orm";
 import cron from "node-cron";
 import { NotificationService } from "./notifications/notification-service";
 import { TelegramProvider } from "./notifications/providers/telegram";
+import { WebPushProvider } from "./notifications/providers/web-push";
+import { DrizzlePushSubscriptionRepository } from "@/repositories/drizzle-push-subscription-repository";
 
 export const notificationService = new NotificationService();
 
-if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
-  notificationService.registerProvider(
-    new TelegramProvider(
-      process.env.TELEGRAM_BOT_TOKEN,
-      process.env.TELEGRAM_CHAT_ID,
-    ),
-  );
+/**
+ * Providers are registered when the worker boots and not at import time, so
+ * that importing this module in tests never opens a production DB connection.
+ */
+export async function registerDefaultProviders() {
+  if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+    notificationService.registerProvider(
+      new TelegramProvider(
+        process.env.TELEGRAM_BOT_TOKEN,
+        process.env.TELEGRAM_CHAT_ID,
+      ),
+    );
+  }
+
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    const { db } = await import("@/db/client");
+
+    notificationService.registerProvider(
+      new WebPushProvider(new DrizzlePushSubscriptionRepository(db), {
+        publicKey: process.env.VAPID_PUBLIC_KEY,
+        privateKey: process.env.VAPID_PRIVATE_KEY,
+        subject: process.env.VAPID_SUBJECT || "mailto:admin@think-twice.local",
+      }),
+    );
+  }
 }
 
 async function sendNotification(objectName: string): Promise<boolean> {
@@ -69,10 +89,12 @@ const globalForWorker = globalThis as unknown as {
   subtitlesCronStarted: boolean | undefined;
 };
 
-export function startScheduledWorker() {
+export async function startScheduledWorker() {
   if (globalForWorker.subtitlesCronStarted) {
     return;
   }
+
+  await registerDefaultProviders();
 
   console.log(
     "[WORKER] Worker activated successfully. Checking every minute...",

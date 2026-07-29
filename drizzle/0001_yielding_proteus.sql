@@ -1,0 +1,1 @@
+ALTER TABLE "objects" ADD COLUMN "notified" boolean DEFAULT false NOT NULL;

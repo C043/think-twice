@@ -1,0 +1,28 @@
+# Rebuilt inside the image by the deps stage.
+node_modules
+.next
+out
+build
+
+# Secrets: every value is injected through the compose `environment` block,
+# so the file must never end up in an image layer.
+.env
+.env.*
+
+# Not needed to build or run the app.
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose*.yml
+README.md
+coverage
+tests
+npm-debug.log*
+*.tsbuildinfo
+.DS_Store
+.vscode
+.idea
+*.example
+
+# Kept on purpose: drizzle/ holds the migrations applied at deploy time.

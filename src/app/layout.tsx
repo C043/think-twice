@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ThemedToaster from "@/components/ThemedToaster";
+import { SettingsProvider } from "@/components/SettingsProvider";
+import { readSettings } from "@/lib/read-settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +30,12 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   icons: {
+    // Engines that support it get the vector mark; favicon.ico (16/32/48) is
+    // the fallback for the rest.
+    icon: [
+      { url: "/icons/logo.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+    ],
     apple: "/icons/apple-touch-icon.png",
   },
   other: {
@@ -45,11 +53,21 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+/**
+ * Every page below this layout reads live rows: settings here, objects in the
+ * list. A database query is not something Next treats as dynamic on its own, so
+ * without this the pages get prerendered at build time and keep serving
+ * whatever the database held then.
+ */
+export const dynamic = "force-dynamic";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await readSettings();
+
   return (
     <html
       lang="en"
@@ -61,8 +79,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          {children}
-          <ThemedToaster />
+          <SettingsProvider settings={settings}>
+            {children}
+            <ThemedToaster />
+          </SettingsProvider>
         </ThemeProvider>
         <ServiceWorkerRegistrar />
       </body>

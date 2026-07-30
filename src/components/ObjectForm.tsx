@@ -9,6 +9,8 @@ import {
   primaryButton,
   secondaryButton,
 } from "./ui/styles";
+import { useSettings } from "./SettingsProvider";
+import { currencyAffix, formatReviewDate } from "@/lib/object-format";
 
 interface ObjectFormProps {
   initialData?: { name: string; price: number; reviewDays: number };
@@ -48,6 +50,9 @@ export default function ObjectForm({
     (initialData?.reviewDays ?? 30).toString(),
   );
   const [loading, setLoading] = useState(false);
+
+  const settings = useSettings();
+  const affix = currencyAffix(settings);
 
   const parsedDays = parseInt(reviewDays, 10);
   const parsedPrice = parseFloat(price);
@@ -116,9 +121,15 @@ export default function ObjectForm({
         <label htmlFor="object-price" className={fieldLabel}>
           Price
         </label>
+        {/* The symbol and the side it goes on both come from the locale: it-IT
+            puts the euro after the amount, en-US puts the dollar before it. */}
         <div className="relative">
-          <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[15px] text-muted">
-            €
+          <span
+            className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-[15px] text-muted ${
+              affix.position === "prefix" ? "left-3.5" : "right-3.5"
+            }`}
+          >
+            {affix.symbol}
           </span>
           <input
             id="object-price"
@@ -129,7 +140,9 @@ export default function ObjectForm({
             required
             value={price}
             onChange={(ev) => setPrice(ev.target.value)}
-            className={`${fieldInput} pl-8 font-medium tabular-nums`}
+            className={`${fieldInput} font-medium tabular-nums ${
+              affix.position === "prefix" ? "pl-10" : "pr-12"
+            }`}
             placeholder="0.00"
           />
         </div>
@@ -183,11 +196,7 @@ export default function ObjectForm({
             <CalendarClock className="h-3.5 w-3.5 shrink-0" />
             You decide on{" "}
             <span className="font-medium text-foreground">
-              {reviewDate.toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
+              {formatReviewDate(reviewDate, settings.locale)}
             </span>
           </p>
         )}

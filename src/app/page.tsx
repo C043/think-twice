@@ -1,8 +1,10 @@
+import Link from "next/link";
+import { Settings } from "lucide-react";
 import AddObjectComponent from "@/components/AddObjectComponent";
-import ThemeToggle from "@/components/ThemeToggle";
 import ObjectList from "@/components/ObjectList";
 import PushNotificationsToggle from "@/components/PushNotificationsToggle";
 import InstallPwaButton from "@/components/InstallPwaButton";
+import { iconButton } from "@/components/ui/styles";
 
 export default function Home() {
   return (
@@ -25,7 +27,9 @@ export default function Home() {
           <div className="flex items-center gap-0.5">
             <InstallPwaButton />
             <PushNotificationsToggle />
-            <ThemeToggle />
+            <Link href="/settings" aria-label="Settings" className={iconButton}>
+              <Settings className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </header>

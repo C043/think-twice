@@ -9,6 +9,7 @@ import ObjectForm from "./ObjectForm";
 import Modal from "./ModalComponent";
 import { toast } from "sonner";
 import { dangerButton, secondaryButton } from "./ui/styles";
+import { useSettings } from "./SettingsProvider";
 import {
   formatPrice,
   formatReviewDate,
@@ -26,6 +27,7 @@ export default function ObjectListClient({
   initialObjects,
 }: ObjectListClientProps) {
   const router = useRouter();
+  const settings = useSettings();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedObject, setSelectedObject] = useState<SelectObject | null>(
@@ -111,7 +113,7 @@ export default function ObjectListClient({
           {initialObjects.length === 1 ? "object" : "objects"} on hold
           <span className="mx-1.5 opacity-40">·</span>
           <span className="font-semibold tabular-nums text-foreground">
-            {formatPrice(totalCents)}
+            {formatPrice(totalCents, settings)}
           </span>{" "}
           resisted
         </p>
@@ -164,7 +166,7 @@ export default function ObjectListClient({
                       {obj.name}
                     </span>
                     <span className="shrink-0 font-semibold tabular-nums text-foreground">
-                      {formatPrice(obj.price)}
+                      {formatPrice(obj.price, settings)}
                     </span>
                   </div>
 
@@ -182,7 +184,7 @@ export default function ObjectListClient({
                     )}
 
                     <span className="shrink-0 text-[11px] text-muted tabular-nums">
-                      {formatReviewDate(obj.reviewAt)}
+                      {formatReviewDate(obj.reviewAt, settings.locale)}
                     </span>
                   </div>
 

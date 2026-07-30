@@ -15,8 +15,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="relative z-10 flex min-h-dvh flex-col items-center">
-      <header className="sticky top-0 z-30 w-full border-b border-line bg-background">
-        <div className="mx-auto flex w-full max-w-xl items-center gap-2 px-5 py-3">
+      <header className="sticky top-0 z-30 w-full border-b border-line bg-background pt-[env(safe-area-inset-top)]">
+        <div
+          className="mx-auto flex w-full max-w-xl items-center gap-2 py-3
+                     pr-[max(1.25rem,env(safe-area-inset-right))]
+                     pl-[max(1.25rem,env(safe-area-inset-left))]"
+        >
           <Link href="/" aria-label="Back" className={iconButton}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -26,7 +30,12 @@ export default async function SettingsPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-xl flex-1 space-y-8 px-5 pt-7 pb-16">
+      <main
+        className="mx-auto w-full max-w-xl flex-1 space-y-8 pt-5 sm:pt-7
+                   pb-[calc(4rem+env(safe-area-inset-bottom))]
+                   pr-[max(1.25rem,env(safe-area-inset-right))]
+                   pl-[max(1.25rem,env(safe-area-inset-left))]"
+      >
         <section className="space-y-3">
           <div className="space-y-1">
             <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase">

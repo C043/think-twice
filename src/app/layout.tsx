@@ -27,7 +27,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Think Twice",
-    statusBarStyle: "black-translucent",
+    // Not "black-translucent": that one lets the page run underneath the status
+    // bar, which put the header on top of the clock and the battery, and forces
+    // white status bar text — unreadable over the light theme. "default" makes
+    // iOS reserve the strip and pick a legible colour for it.
+    statusBarStyle: "default",
   },
   icons: {
     // Engines that support it get the vector mark. The 16/32/48/64 favicon.ico
@@ -44,8 +48,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Exactly the --background tokens from globals.css. iOS tints the status bar
+  // strip with this, so anything else leaves a visible seam above the header.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f6f7" },
     { media: "(prefers-color-scheme: dark)", color: "#08080a" },
   ],
   viewportFit: "cover",

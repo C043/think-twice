@@ -13,8 +13,15 @@ export default function Home() {
       {/* Opaque, no backdrop-filter: blurring what is behind a sticky bar means
           re-reading and re-blurring that region on every scroll frame, which is
           the single most expensive thing a header can do. */}
-      <header className="sticky top-0 z-30 w-full border-b border-line bg-background">
-        <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-5 py-3">
+      {/* The inset is zero with statusBarStyle "default", but it is what keeps
+          the bar clear of the notch in landscape, and what would save the layout
+          if the status bar style ever went back to translucent. */}
+      <header className="sticky top-0 z-30 w-full border-b border-line bg-background pt-[env(safe-area-inset-top)]">
+        <div
+          className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 py-3
+                     pr-[max(1.25rem,env(safe-area-inset-right))]
+                     pl-[max(1.25rem,env(safe-area-inset-left))]"
+        >
           <div className="flex items-baseline gap-2">
             <h1 className="text-[17px] font-semibold tracking-tight text-foreground">
               Think Twice
@@ -34,12 +41,20 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-xl flex-1 px-5 pt-7 pb-36">
-        <div className="mb-6 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+      {/* Tighter on phones, where the header, the heading and the room left for
+          the floating button were together eating most of a small viewport. The
+          bottom padding clears the button: 3.5rem tall, sitting 1.75rem up. */}
+      <main
+        className="mx-auto w-full max-w-xl flex-1 pt-5 sm:pt-7
+                   pb-[calc(7rem+env(safe-area-inset-bottom))]
+                   pr-[max(1.25rem,env(safe-area-inset-right))]
+                   pl-[max(1.25rem,env(safe-area-inset-left))]"
+      >
+        <div className="mb-5 space-y-1 sm:mb-6 sm:space-y-1.5">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             Your objects
           </h2>
-          <p className="text-sm leading-relaxed text-muted">
+          <p className="hidden text-sm leading-relaxed text-muted sm:block">
             Every timer still running is money you have not spent yet.
           </p>
         </div>

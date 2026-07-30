@@ -9,6 +9,8 @@ import { DrizzlePushSubscriptionRepository } from "@/repositories/drizzle-push-s
 import { SavePushSubscriptionUseCase } from "@/use-cases/save-push-subscription";
 import { DeletePushSubscriptionUseCase } from "@/use-cases/delete-push-subscription";
 import { SelectPushSubscriptionsUseCase } from "@/use-cases/select-push-subscriptions";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
+import { AppError } from "@/errors/AppError";
 
 const SUBSCRIPTION_A = {
   endpoint: "https://fcm.googleapis.com/fcm/send/aaa",
@@ -22,7 +24,7 @@ const SUBSCRIPTION_B = {
 
 describe("Push Subscription Repository", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let repository: DrizzlePushSubscriptionRepository;
 
   beforeEach(async () => {
@@ -116,7 +118,7 @@ describe("Push Subscription Repository", () => {
 
 describe("Save Push Subscription Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let saveUseCase: SavePushSubscriptionUseCase;
 
   beforeEach(async () => {
@@ -155,7 +157,8 @@ describe("Save Push Subscription Feature", () => {
           endpoint: "",
           keys: SUBSCRIPTION_A.keys,
         }),
-      (err: any) => {
+      (err: unknown) => {
+        assert.ok(err instanceof AppError);
         assert.strictEqual(err.status, 400);
         return true;
       },
@@ -169,7 +172,8 @@ describe("Save Push Subscription Feature", () => {
           endpoint: SUBSCRIPTION_A.endpoint,
           keys: { p256dh: "", auth: "" },
         }),
-      (err: any) => {
+      (err: unknown) => {
+        assert.ok(err instanceof AppError);
         assert.strictEqual(err.status, 400);
         return true;
       },
@@ -179,7 +183,7 @@ describe("Save Push Subscription Feature", () => {
 
 describe("Delete Push Subscription Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let deleteUseCase: DeletePushSubscriptionUseCase;
   let repository: DrizzlePushSubscriptionRepository;
 
@@ -213,7 +217,8 @@ describe("Delete Push Subscription Feature", () => {
   test("should reject a delete without endpoint", async () => {
     await assert.rejects(
       async () => await deleteUseCase.execute(""),
-      (err: any) => {
+      (err: unknown) => {
+        assert.ok(err instanceof AppError);
         assert.strictEqual(err.status, 400);
         return true;
       },
@@ -223,7 +228,7 @@ describe("Delete Push Subscription Feature", () => {
 
 describe("Select Push Subscriptions Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let selectUseCase: SelectPushSubscriptionsUseCase;
 
   beforeEach(async () => {
@@ -249,7 +254,7 @@ describe("Select Push Subscriptions Feature", () => {
 
 describe("Push Subscription API", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
 
   beforeEach(async () => {
     pg = new PGlite();

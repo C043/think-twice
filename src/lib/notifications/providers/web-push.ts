@@ -23,6 +23,21 @@ export type WebPushSender = (
 
 const DEAD_SUBSCRIPTION_STATUSES = [404, 410];
 
+/**
+ * `web-push` rejects with a `WebPushError` carrying the push service's status,
+ * but a network failure rejects with a plain Error and anything can be thrown.
+ * Narrow rather than assume the shape.
+ */
+function pushStatusCode(err: unknown): number | undefined {
+  if (typeof err !== "object" || err === null || !("statusCode" in err)) {
+    return undefined;
+  }
+
+  const { statusCode } = err as { statusCode: unknown };
+
+  return typeof statusCode === "number" ? statusCode : undefined;
+}
+
 function createWebPushSender(vapid: VapidDetails): WebPushSender {
   return async (subscription, payload) =>
     await webpush.sendNotification(subscription, payload, {
@@ -79,10 +94,13 @@ export class WebPushProvider implements NotificationProvider {
           );
 
           return true;
-        } catch (err: any) {
-          if (DEAD_SUBSCRIPTION_STATUSES.includes(err?.statusCode)) {
+        } catch (err) {
+          const statusCode = pushStatusCode(err);
+
+          if (statusCode !== undefined &&
+              DEAD_SUBSCRIPTION_STATUSES.includes(statusCode)) {
             console.warn(
-              `[WEB PUSH PROVIDER] Dropping expired subscription (${err.statusCode}).`,
+              `[WEB PUSH PROVIDER] Dropping expired subscription (${statusCode}).`,
             );
             await this.subscriptionRepository.deleteByEndpoint(
               subscription.endpoint,

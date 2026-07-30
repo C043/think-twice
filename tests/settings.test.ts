@@ -9,13 +9,15 @@ import { handlePut, handleSelect } from "@/app/api/settings/route";
 import { DrizzleSettingsRepository } from "@/repositories/drizzle-settings-repository";
 import { SelectSettingsUseCase } from "@/use-cases/select-settings";
 import { PutSettingsUseCase } from "@/use-cases/put-settings";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
+import { AppError } from "@/errors/AppError";
 
 const DEFAULT_LOCALE = "it-IT";
 const DEFAULT_CURRENCY = "EUR";
 
 describe("Settings Repository", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let repository: DrizzleSettingsRepository;
 
   beforeEach(async () => {
@@ -93,7 +95,7 @@ describe("Settings Repository", () => {
 
 describe("Select Settings Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let selectSettingsUseCase: SelectSettingsUseCase;
 
   beforeEach(async () => {
@@ -132,7 +134,7 @@ describe("Select Settings Feature", () => {
 
 describe("Put Settings Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let putSettingsUseCase: PutSettingsUseCase;
 
   beforeEach(async () => {
@@ -182,7 +184,8 @@ describe("Put Settings Feature", () => {
     await assert.rejects(
       async () =>
         await putSettingsUseCase.execute({ locale: "!!!", currency: "EUR" }),
-      (err: any) => {
+      (err: unknown) => {
+        assert.ok(err instanceof AppError);
         assert.strictEqual(err.status, 400);
         return true;
       },
@@ -193,7 +196,8 @@ describe("Put Settings Feature", () => {
     await assert.rejects(
       async () =>
         await putSettingsUseCase.execute({ locale: "en-GB", currency: "EURO" }),
-      (err: any) => {
+      (err: unknown) => {
+        assert.ok(err instanceof AppError);
         assert.strictEqual(err.status, 400);
         return true;
       },
@@ -207,7 +211,8 @@ describe("Put Settings Feature", () => {
           locale: "",
           currency: "EUR",
         }),
-      (err: any) => {
+      (err: unknown) => {
+        assert.ok(err instanceof AppError);
         assert.strictEqual(err.status, 400);
         return true;
       },

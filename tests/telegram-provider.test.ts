@@ -1,7 +1,6 @@
 import { TelegramProvider } from "@/lib/notifications/providers/telegram";
 import assert from "assert";
 import { test, afterEach, beforeEach, describe } from "node:test";
-import { global } from "styled-jsx/css";
 
 describe("Telegram Provider", () => {
   let originalFetch: typeof fetch;

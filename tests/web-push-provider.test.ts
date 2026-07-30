@@ -9,6 +9,7 @@ import {
   WebPushProvider,
   WebPushSender,
 } from "@/lib/notifications/providers/web-push";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
 
 const VAPID = {
   publicKey: "test-public-key",
@@ -30,7 +31,7 @@ class PushError extends Error {
 
 describe("Web Push Provider", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let repository: DrizzlePushSubscriptionRepository;
 
   beforeEach(async () => {

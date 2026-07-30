@@ -15,10 +15,11 @@ import { DrizzleObjectRepository } from "../src/repositories/drizzle-object-repo
 import { SelectObjectUseCase } from "@/use-cases/select-object";
 import { DeleteObjectUseCase } from "@/use-cases/delete-object";
 import { PutObjectUseCase } from "@/use-cases/put-object";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
 
 describe("Add Object Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let objectRepository: DrizzleObjectRepository;
   let addObjectUseCase: AddObjectUseCase;
 
@@ -118,7 +119,7 @@ describe("Add Object Feature", () => {
 
 describe("Select Objects Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let objectRepository: DrizzleObjectRepository;
   let selectObjectUseCase: SelectObjectUseCase;
   let addObjectUseCase: AddObjectUseCase;
@@ -169,10 +170,9 @@ describe("Select Objects Feature", () => {
 
 describe("Remove Object Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let objectRepository: DrizzleObjectRepository;
   let addObjectUseCase: AddObjectUseCase;
-  let selectObjectUseCase: SelectObjectUseCase;
   let deleteObjectUseCase: DeleteObjectUseCase;
   let id: string;
 
@@ -184,7 +184,6 @@ describe("Remove Object Feature", () => {
 
     objectRepository = new DrizzleObjectRepository(db);
     addObjectUseCase = new AddObjectUseCase(objectRepository);
-    selectObjectUseCase = new SelectObjectUseCase(objectRepository);
     deleteObjectUseCase = new DeleteObjectUseCase(objectRepository);
 
     const input = {
@@ -255,10 +254,9 @@ describe("Remove Object Feature", () => {
 
 describe("Editing Object Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let objectRepository: DrizzleObjectRepository;
   let addObjectUseCase: AddObjectUseCase;
-  let selectObjectUseCase: SelectObjectUseCase;
   let putObjectUseCase: PutObjectUseCase;
   let id: string;
 
@@ -270,7 +268,6 @@ describe("Editing Object Feature", () => {
 
     objectRepository = new DrizzleObjectRepository(db);
     addObjectUseCase = new AddObjectUseCase(objectRepository);
-    selectObjectUseCase = new SelectObjectUseCase(objectRepository);
     putObjectUseCase = new PutObjectUseCase(objectRepository);
 
     const input = {

@@ -3,6 +3,7 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { iconButton } from "./ui/styles";
 
 export default function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -13,15 +14,16 @@ export default function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="h-9 w-9" />;
+    return <div className="h-10 w-10" />;
   }
 
   const isDark = resolvedTheme === "dark";
 
   return (
     <button
+      type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative w-9 overflow-hidden text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+      className={`${iconButton} relative overflow-hidden`}
       aria-label="Change theme"
     >
       <div

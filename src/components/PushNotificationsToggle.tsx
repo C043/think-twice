@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell, BellOff, BellRing, Share } from "lucide-react";
+import { Bell, BellOff, BellRing, Loader2, Share } from "lucide-react";
 import { toast } from "sonner";
 import Modal from "./ModalComponent";
+import { iconButton, secondaryButton } from "./ui/styles";
 import {
   isIos,
   isPushSupported,
@@ -103,7 +104,7 @@ export default function PushNotificationsToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="h-9 w-9" />;
+    return <div className="h-10 w-10" />;
   }
 
   if (needsInstall) {
@@ -112,7 +113,7 @@ export default function PushNotificationsToggle() {
         <button
           type="button"
           onClick={() => setIsInstallModalOpen(true)}
-          className="w-9 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+          className={iconButton}
           aria-label="How to enable notifications on iOS"
         >
           <Bell className="h-5 w-5" />
@@ -121,40 +122,40 @@ export default function PushNotificationsToggle() {
         <Modal
           isOpen={isInstallModalOpen}
           onClose={() => setIsInstallModalOpen(false)}
+          title="Install Think Twice first"
+          description="On iPhone and iPad, notifications only work once the app lives on your Home Screen."
+          footer={
+            <button
+              type="button"
+              onClick={() => setIsInstallModalOpen(false)}
+              className={secondaryButton}
+            >
+              Got it
+            </button>
+          }
         >
-          <div className="flex flex-col h-full justify-between gap-4 p-5 text-left">
-            <div className="space-y-3">
-              <h2 className="text-xl font-bold dark:text-white text-black">
-                Install Think Twice first
-              </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                On iPhone and iPad, notifications only work once the app lives
-                on your Home Screen.
-              </p>
-              <ol className="text-sm text-zinc-600 dark:text-zinc-300 space-y-2 list-decimal list-inside">
-                <li className="flex items-center gap-2">
-                  <Share className="h-4 w-4 shrink-0" />
-                  Tap the Share button in Safari.
-                </li>
-                <li>Choose &quot;Add to Home Screen&quot;.</li>
-                <li>Open Think Twice from the new icon.</li>
-                <li>Tap the bell again and allow notifications.</li>
-              </ol>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                Requires iOS 16.4 or newer.
-              </p>
-            </div>
+          <ol className="space-y-2.5 pb-2 text-left text-sm text-muted">
+            {[
+              <>
+                Tap the <Share className="mx-0.5 inline h-3.5 w-3.5 align-text-bottom" />{" "}
+                Share button in Safari.
+              </>,
+              <>Choose &quot;Add to Home Screen&quot;.</>,
+              <>Open Think Twice from the new icon.</>,
+              <>Tap the bell again and allow notifications.</>,
+            ].map((step, index) => (
+              <li key={index} className="flex items-start gap-2.5">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">
+                  {index + 1}
+                </span>
+                <span className="leading-relaxed">{step}</span>
+              </li>
+            ))}
+          </ol>
 
-            <div className="flex gap-2 pt-4 border-t dark:border-zinc-800">
-              <button
-                type="button"
-                onClick={() => setIsInstallModalOpen(false)}
-                className="flex-1 p-2 border rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-              >
-                Got it
-              </button>
-            </div>
-          </div>
+          <p className="pb-2 text-xs text-muted/70">
+            Requires iOS 16.4 or newer.
+          </p>
         </Modal>
       </>
     );
@@ -169,12 +170,14 @@ export default function PushNotificationsToggle() {
       type="button"
       disabled={busy}
       onClick={subscribed ? disable : enable}
-      className="w-9 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+      className={iconButton}
       aria-label={
         subscribed ? "Disable notifications" : "Enable notifications"
       }
     >
-      {subscribed ? (
+      {busy ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : subscribed ? (
         <BellRing className="h-5 w-5 text-emerald-500" />
       ) : (
         <BellOff className="h-5 w-5" />

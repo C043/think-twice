@@ -2,32 +2,168 @@
 
 @variant dark (html:where(.dark, [data-theme="dark"]) &);
 
-@theme {
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-}
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   Every surface colour lives here so light and dark stay in sync and the
+   next-themes class toggle is the single switch. Utilities read them through
+   the `@theme inline` block below (bg-surface, text-muted, border-line, ...).
+   --------------------------------------------------------------------------- */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f6f7;
+  --foreground: #09090b;
+  --surface: #ffffff;
+  --surface-muted: #fafafa;
+  --line: #e6e6e9;
+  --line-strong: #d4d4d8;
+  --muted: #71717a;
+  --accent: #6366f1;
+  --accent-soft: #eef0ff;
+  --shadow-card: 0 1px 2px rgb(9 9 11 / 0.04),
+    0 10px 30px -18px rgb(9 9 11 / 0.25);
+  --shadow-float: 0 6px 16px -6px rgb(9 9 11 / 0.2),
+    0 18px 48px -18px rgb(9 9 11 / 0.35);
+  --glow: radial-gradient(60% 60% at 50% 0%, rgb(99 102 241 / 0.1), transparent 70%);
+}
+
+/* `:root.dark` and not `html:where(.dark)`: :where() contributes zero
+   specificity, so the light `:root` block above would outrank it and the dark
+   palette would never apply. */
+:root.dark,
+:root[data-theme="dark"] {
+  --background: #08080a;
+  --foreground: #fafafa;
+  --surface: #101013;
+  --surface-muted: #16161a;
+  --line: #232327;
+  --line-strong: #303036;
+  --muted: #8b8b94;
+  --accent: #818cf8;
+  --accent-soft: #1b1b34;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.6), 0 12px 32px -20px rgb(0 0 0 / 0.9);
+  --shadow-float: 0 8px 20px -8px rgb(0 0 0 / 0.7),
+    0 24px 56px -24px rgb(0 0 0 / 0.9);
+  --glow: radial-gradient(60% 60% at 50% 0%, rgb(129 140 248 / 0.14), transparent 70%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --animate-fade-in: fade-in 0.18s ease-out;
+  --animate-sheet-up: sheet-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-pop-in: pop-in 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-row-in: row-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-breathe: breathe 2.4s ease-in-out infinite;
+}
+
+/* Declared outside @theme so they are always emitted, independently of which
+   animate-* utility survives tree-shaking. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(12%);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Horizontal swipe rows must not show a scrollbar over the card. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ambient wash behind the content, anchored to the viewport. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--glow);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Kill the spinners: prices and day counts are typed, not stepped. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

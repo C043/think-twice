@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { isStandalone } from "@/lib/push-client";
+import { iconButton } from "./ui/styles";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -57,7 +58,7 @@ export default function InstallPwaButton() {
     <button
       type="button"
       onClick={install}
-      className="w-9 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+      className={iconButton}
       aria-label="Install Think Twice"
     >
       <Download className="h-5 w-5" />

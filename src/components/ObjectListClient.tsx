@@ -3,10 +3,20 @@
 import { SelectObject } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import DeleteObjectComponent from "./DeleteObjectComponent";
 import ObjectForm from "./ObjectForm";
 import Modal from "./ModalComponent";
 import { toast } from "sonner";
+import { dangerButton, secondaryButton } from "./ui/styles";
+import {
+  formatPrice,
+  formatReviewDate,
+  formatTimeLeft,
+  isReadyToDecide,
+  progressPercentage,
+  reviewDaysBetween,
+} from "@/lib/object-format";
 
 interface ObjectListClientProps {
   initialObjects: SelectObject[];
@@ -22,6 +32,7 @@ export default function ObjectListClient({
     null,
   );
   const [loadingDelete, setLoadingDelete] = useState(false);
+  // Null until mounted: the server has no clock the client would agree with.
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -30,30 +41,6 @@ export default function ObjectListClient({
     const interval = setInterval(() => setNow(new Date()), 10000);
     return () => clearInterval(interval);
   }, []);
-
-  const calculateProgressPercentage = (obj: SelectObject): number => {
-    if (!now || !obj.createdAt || !obj.reviewAt) return 0;
-    const start = new Date(obj.createdAt).getTime();
-    const end = new Date(obj.reviewAt).getTime();
-    const current = now.getTime();
-
-    const totalDuration = end - start;
-    if (totalDuration <= 0) return 100;
-
-    const timePassed = current - start;
-    const percentage = (timePassed / totalDuration) * 100;
-
-    return Math.max(0, Math.min(100, percentage));
-  };
-
-  const calculateReviewDays = (obj: SelectObject): number => {
-    if (!obj.createdAt || !obj.reviewAt) return 30;
-
-    const start = new Date(obj.createdAt);
-    const end = new Date(obj.reviewAt);
-    const diffInMs = end.getTime() - start.getTime();
-    return Math.round(diffInMs / (1000 * 60 * 60 * 24)) || 30;
-  };
 
   const handleOpenEdit = (obj: SelectObject) => {
     setSelectedObject(obj);
@@ -102,65 +89,140 @@ export default function ObjectListClient({
       toast.success("Object deleted successfully!");
       handleCloseModals();
       router.refresh();
-    } catch (err) {
+    } catch {
       toast.error("There was an error deleting the object.");
     } finally {
       setLoadingDelete(false);
     }
   };
 
+  const totalCents = initialObjects.reduce((sum, obj) => sum + obj.price, 0);
+  const readyCount = now
+    ? initialObjects.filter((obj) => isReadyToDecide(obj.reviewAt, now)).length
+    : 0;
+
   return (
-    <div className="pb-24">
-      <ul className="m-y-10 w-full">
-        {initialObjects.map((obj: SelectObject) => {
-          const progress = calculateProgressPercentage(obj);
+    <div>
+      <div className="mb-3 flex items-center justify-between gap-3 px-1">
+        <p className="text-[13px] text-muted">
+          <span className="font-semibold text-foreground">
+            {initialObjects.length}
+          </span>{" "}
+          {initialObjects.length === 1 ? "object" : "objects"} on hold
+          <span className="mx-1.5 opacity-40">·</span>
+          <span className="font-semibold tabular-nums text-foreground">
+            {formatPrice(totalCents)}
+          </span>{" "}
+          resisted
+        </p>
+
+        {readyCount > 0 && (
+          <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            {readyCount} ready
+          </span>
+        )}
+      </div>
+
+      <ul className="flex w-full flex-col gap-2.5">
+        {initialObjects.map((obj, index) => {
+          const progress = now
+            ? progressPercentage(obj.createdAt, obj.reviewAt, now)
+            : 0;
+          const ready = now ? isReadyToDecide(obj.reviewAt, now) : false;
+
           return (
             <li
               key={obj.id}
-              className="relative overflow-hidden w-full mb-3 border dark:border-zinc-800 rounded-xl flex justify-between bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-200/90 dark:hover:bg-zinc-800/90 transition-colors items-center"
+              style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+              className={`group animate-row-in overflow-hidden rounded-2xl border bg-surface shadow-card
+                          transition-all duration-200 hover:-translate-y-0.5 hover:shadow-float ${
+                            ready
+                              ? "border-emerald-500/40"
+                              : "border-line hover:border-line-strong"
+                          }`}
             >
-              <div className="absolute inset-0 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors z-0" />
-              <div
-                className="absolute h-full top-0 left-0 bg-emerald-500/50 dark:bg-emerald-500/30 transition-all duration-1000 ease-out z-10 pointer-events-none"
-                style={{ width: `${progress}%` }}
-              />
-              <div className="relative z-20 w-full flex justify-between items-center bg-transparent">
-                {/*Passiamo la funzione handleOpenDelete al figlio, senza annidare modali qui*/}
-                <DeleteObjectComponent
-                  objectId={obj.id}
-                  objectName={obj.name}
-                  onDeleteClick={() => handleOpenDelete(obj)}
+              {/* handleOpenDelete is passed down; the modal stays mounted once, here. */}
+              <DeleteObjectComponent
+                objectId={obj.id}
+                objectName={obj.name}
+                onDeleteClick={() => handleOpenDelete(obj)}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(obj)}
+                  className="w-full cursor-pointer px-4 py-3.5 text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(obj)}
-                    className="rounded-xl flex justify-between items-center w-full text-left cursor-pointer"
-                  >
-                    <div className="p-3">
-                      <span className="font-medium text-black dark:text-white">
-                        {obj.name}
-                      </span>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-zinc-500">
-                          {(obj.price / 100).toFixed(2)}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          aria-hidden
+                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                            ready
+                              ? "bg-emerald-500"
+                              : "animate-breathe bg-accent"
+                          }`}
+                        />
+                        <span className="truncate font-medium text-foreground">
+                          {obj.name}
                         </span>
                       </div>
+
+                      <div className="mt-1.5 pl-3.5">
+                        {!now ? (
+                          <div className="h-3.5 w-28 animate-breathe rounded bg-line" />
+                        ) : ready ? (
+                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            Ready to decide
+                          </span>
+                        ) : (
+                          <span className="text-[13px] text-muted tabular-nums">
+                            {formatTimeLeft(obj.reviewAt, now)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </button>
-                </DeleteObjectComponent>
-              </div>
+
+                    <div className="shrink-0 text-right">
+                      <div className="font-semibold tabular-nums text-foreground">
+                        {formatPrice(obj.price)}
+                      </div>
+                      <div className="mt-1 text-[11px] text-muted tabular-nums">
+                        {formatReviewDate(obj.reviewAt)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-line">
+                    <div
+                      className={`h-full rounded-full transition-[width] duration-1000 ease-out ${
+                        ready ? "bg-emerald-500" : "bg-accent"
+                      }`}
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </button>
+              </DeleteObjectComponent>
             </li>
           );
         })}
       </ul>
 
-      <Modal isOpen={isEditModalOpen} onClose={handleCloseModals}>
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModals}
+        title="Edit object"
+        description="Change the details or restart the waiting period."
+      >
         {selectedObject && (
           <ObjectForm
             initialData={{
               name: selectedObject.name,
               price: selectedObject.price,
-              reviewDays: calculateReviewDays(selectedObject),
+              reviewDays: reviewDaysBetween(
+                selectedObject.createdAt,
+                selectedObject.reviewAt,
+              ),
             }}
             onSubmit={handleUpdateSubmit}
             onCancel={handleCloseModals}
@@ -172,42 +234,38 @@ export default function ObjectListClient({
         )}
       </Modal>
 
-      <Modal isOpen={isDeleteModalOpen} onClose={handleCloseModals}>
-        {selectedObject && (
-          <div className="flex flex-col h-full justify-between gap-4 p-5 text-left">
-            <div className="space-y-3">
-              <h2 className="text-xl font-bold dark:text-white text-black">
-                Are you absolutely sure?
-              </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                This will permanently delete{" "}
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                  "{selectedObject.name}"
-                </span>
-                .
-              </p>
-            </div>
-
-            <div className="flex gap-2 pt-4 border-t dark:border-zinc-800">
-              <button
-                type="button"
-                disabled={loadingDelete}
-                onClick={handleCloseModals}
-                className="flex-1 p-2 border rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={loadingDelete}
-                onClick={handleDeleteSubmit}
-                className="flex-1 p-2 bg-red-600 text-white rounded-lg text-sm font-medium"
-              >
-                {loadingDelete ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        )}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseModals}
+        title="Delete this object?"
+        description={
+          selectedObject
+            ? `"${selectedObject.name}" and its waiting period will be removed for good.`
+            : undefined
+        }
+        footer={
+          <>
+            <button
+              type="button"
+              disabled={loadingDelete}
+              onClick={handleCloseModals}
+              className={secondaryButton}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={loadingDelete}
+              onClick={handleDeleteSubmit}
+              className={dangerButton}
+            >
+              {loadingDelete && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loadingDelete ? "Deleting" : "Delete"}
+            </button>
+          </>
+        }
+      >
+        <div className="pb-1" />
       </Modal>
     </div>
   );

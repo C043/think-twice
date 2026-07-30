@@ -1,8 +1,22 @@
+"use client";
+
 import { useState } from "react";
 import { toast } from "sonner";
+import { CalendarClock, Loader2 } from "lucide-react";
+import {
+  fieldInput,
+  fieldLabel,
+  primaryButton,
+  secondaryButton,
+} from "./ui/styles";
 
 interface ObjectFormProps {
   initialData?: { name: string; price: number; reviewDays: number };
+  /**
+   * Clock captured by the parent when it opened the form. Passed in rather than
+   * read here so rendering stays pure; without it the date preview is skipped.
+   */
+  baseDate?: Date | null;
   onSubmit: (data: {
     name: string;
     price: number;
@@ -12,8 +26,15 @@ interface ObjectFormProps {
   onSuccess: () => void;
 }
 
+const DAY_PRESETS = [
+  { days: 7, label: "1 week" },
+  { days: 30, label: "1 month" },
+  { days: 90, label: "3 months" },
+];
+
 export default function ObjectForm({
   initialData,
+  baseDate,
   onSubmit,
   onCancel,
   onSuccess,
@@ -22,28 +43,51 @@ export default function ObjectForm({
   const [price, setPrice] = useState(
     initialData ? (initialData.price / 100).toString() : "",
   );
-  const [reviewDays, setReviewDays] = useState(initialData?.reviewDays || 30);
+  // Held as a string so clearing the field does not produce NaN.
+  const [reviewDays, setReviewDays] = useState(
+    (initialData?.reviewDays ?? 30).toString(),
+  );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+
+  const parsedDays = parseInt(reviewDays, 10);
+  const parsedPrice = parseFloat(price);
+
+  // Only previewed when creating: on edit the server recomputes `reviewAt` from
+  // the original `createdAt`, so a "from now" date here would be a lie.
+  const reviewDate =
+    !initialData && baseDate && Number.isFinite(parsedDays) && parsedDays > 0
+      ? new Date(baseDate.getTime() + parsedDays * 24 * 60 * 60 * 1000)
+      : null;
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    setLoading(false);
-    setError(false);
 
-    const priceInCents = Math.round(parseFloat(price) * 100);
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      toast.error("Enter a price greater than zero.");
+      return;
+    }
+
+    if (!Number.isFinite(parsedDays) || parsedDays < 1) {
+      toast.error("The waiting period must be at least one day.");
+      return;
+    }
+
+    const priceInCents = Math.round(parsedPrice * 100);
 
     try {
       setLoading(true);
-      await onSubmit({ name, price: priceInCents, reviewDays });
+      await onSubmit({
+        name: name.trim(),
+        price: priceInCents,
+        reviewDays: parsedDays,
+      });
       toast.success(
         initialData
           ? "Object edited successfully!"
           : "Object saved successfully!",
       );
       onSuccess();
-    } catch (err) {
-      setError(true);
+    } catch {
       toast.error("There was an error saving the object, try again.");
     } finally {
       setLoading(false);
@@ -51,71 +95,124 @@ export default function ObjectForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col h-full justify-between gap-4 p-4"
-    >
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold dark:text-white text-black">
-          {initialData ? "Edit Object" : "Add new Object"}
-        </h2>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 pb-5">
+      <div className="space-y-1.5">
+        <label htmlFor="object-name" className={fieldLabel}>
+          What is it?
+        </label>
+        <input
+          id="object-name"
+          type="text"
+          required
+          autoComplete="off"
+          value={name}
+          onChange={(ev) => setName(ev.target.value)}
+          className={fieldInput}
+          placeholder="Nintendo Switch"
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1 text-black dark:text-slate-300">
-            Name
-          </label>
+      <div className="space-y-1.5">
+        <label htmlFor="object-price" className={fieldLabel}>
+          Price
+        </label>
+        <div className="relative">
+          <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[15px] text-muted">
+            €
+          </span>
           <input
-            type="text"
-            required
-            value={name}
-            onChange={(ev) => setName(ev.target.value)}
-            className="w-full p-2 border rounded-lg bg-transparent text-black dark:text-white"
-            placeholder="Es. Nintendo Switch"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1 text-black dark:text-slate-300">
-            Price
-          </label>
-          <input
+            id="object-price"
             type="number"
+            inputMode="decimal"
             step="0.01"
+            min="0"
             required
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="w-full p-2 border rounded-lg bg-transparent text-black dark:text-white"
-            placeholder="1.00"
+            onChange={(ev) => setPrice(ev.target.value)}
+            className={`${fieldInput} pl-8 font-medium tabular-nums`}
+            placeholder="0.00"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1 text-black dark:text-slate-300">
-            Days to wait
-          </label>
+      </div>
+
+      <div className="space-y-2.5">
+        <label htmlFor="object-days" className={fieldLabel}>
+          Wait for
+        </label>
+
+        <div className="grid grid-cols-3 gap-2">
+          {DAY_PRESETS.map((preset) => {
+            const active = parsedDays === preset.days;
+            return (
+              <button
+                key={preset.days}
+                type="button"
+                onClick={() => setReviewDays(preset.days.toString())}
+                aria-pressed={active}
+                className={`h-10 cursor-pointer rounded-xl border text-[13px] font-semibold transition-all duration-200 ${
+                  active
+                    ? "border-accent bg-accent-soft text-accent"
+                    : "border-line bg-surface-muted text-muted hover:border-line-strong hover:text-foreground"
+                }`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="relative">
           <input
+            id="object-days"
             type="number"
+            inputMode="numeric"
+            min="1"
             required
             value={reviewDays}
-            onChange={(e) => setReviewDays(parseInt(e.target.value))}
-            className="w-full p-2 border rounded-lg bg-transparent text-black dark:text-white"
+            onChange={(ev) => setReviewDays(ev.target.value)}
+            className={`${fieldInput} pr-14 tabular-nums`}
             placeholder="30"
           />
+          <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-[13px] text-muted">
+            days
+          </span>
         </div>
-        <div className="flex gap-2 pt-4 border-t dark:border-zinc-800">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 p-2 border rounded-lg text-sm font-medium text-black dark:text-white"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 p-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
-          >
-            {loading ? "Saving..." : initialData ? "Apply" : "Add"}
-          </button>
-        </div>
+
+        {reviewDate && (
+          <p className="flex items-center gap-1.5 text-[13px] text-muted">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+            You decide on{" "}
+            <span className="font-medium text-foreground">
+              {reviewDate.toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </p>
+        )}
+
+        {initialData && (
+          <p className="flex items-center gap-1.5 text-[13px] text-muted">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+            Counted from the day the object was added.
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-2.5 border-t border-line pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className={secondaryButton}
+        >
+          Cancel
+        </button>
+        <button type="submit" disabled={loading} className={primaryButton}>
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? "Saving" : initialData ? "Apply" : "Add object"}
+        </button>
       </div>
     </form>
   );

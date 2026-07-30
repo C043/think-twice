@@ -8,7 +8,15 @@ import ObjectForm from "./ObjectForm";
 
 export default function AddObjectComponent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Stamped when the sheet opens so the form can preview the review date
+  // without reading the clock during render.
+  const [openedAt, setOpenedAt] = useState<Date | null>(null);
   const router = useRouter();
+
+  const openModal = () => {
+    setOpenedAt(new Date());
+    setIsModalOpen(true);
+  };
 
   const handleCreateObject = async (formData: {
     name: string;
@@ -33,18 +41,32 @@ export default function AddObjectComponent() {
 
   return (
     <>
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+        {/* Fade so rows scrolling under the button stay readable. */}
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent" />
+
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 rounded-full bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xl hover:scale-110 active:scale-95 transition-all cursor-pointer pointer-events-auto"
+          onClick={openModal}
+          aria-label="Add object"
+          className="pointer-events-auto relative flex h-14 items-center gap-2 rounded-full bg-accent
+                     px-5 text-[15px] font-semibold text-white shadow-float transition-all
+                     duration-200 hover:brightness-110 hover:-translate-y-0.5 active:scale-95
+                     cursor-pointer"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className="h-5 w-5" strokeWidth={2.5} />
+          <span>Add object</span>
         </button>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add new object"
+        description="Name it, price it, then sit on it for a while."
+      >
         <ObjectForm
+          baseDate={openedAt}
           onSubmit={handleCreateObject}
           onCancel={() => setIsModalOpen(false)}
           onSuccess={handleSuccess}

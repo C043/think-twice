@@ -6,36 +6,41 @@ import InstallPwaButton from "@/components/InstallPwaButton";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-5 px-16 bg-white dark:bg-black">
-        <div className="flex flex-col items-center text-center">
-          <div className="flex justify-between align-middle">
-            <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+    <div className="relative z-10 flex min-h-dvh flex-col items-center">
+      {/* Glassy bar so the controls stay reachable while the list scrolls. */}
+      <header className="sticky top-0 z-30 w-full border-b border-line/60 bg-background/70 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-5 py-3">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-[17px] font-semibold tracking-tight text-foreground">
               Think Twice
             </h1>
-
-            <div className="flex items-center gap-1">
-              <InstallPwaButton />
-              <PushNotificationsToggle />
-              <ThemeToggle />
-            </div>
-          </div>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            The solution to{" "}
-            <span className="font-medium text-zinc-950 dark:text-zinc-50">
-              compulsive buying.
+            <span className="hidden text-[13px] text-muted sm:inline">
+              buy it later, or not at all
             </span>
-          </p>
-          <div className="w-full max-w-md text-left space-y-2">
-            <h2 className="text-xl font-bold mb-4 text-black dark:text-white">
-              Your Objects
-            </h2>
-
-            <ObjectList />
           </div>
-          <AddObjectComponent />
+
+          <div className="flex items-center gap-0.5">
+            <InstallPwaButton />
+            <PushNotificationsToggle />
+            <ThemeToggle />
+          </div>
         </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-xl flex-1 px-5 pt-7 pb-36">
+        <div className="mb-6 space-y-1.5">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Your objects
+          </h2>
+          <p className="text-sm leading-relaxed text-muted">
+            Every timer still running is money you have not spent yet.
+          </p>
+        </div>
+
+        <ObjectList />
       </main>
+
+      <AddObjectComponent />
     </div>
   );
 }

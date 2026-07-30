@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -40,9 +41,18 @@ export default function Modal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // No document while server-rendering. Every call site starts closed, so this
+  // branch is never the one that hydrates.
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
+  /**
+   * Portalled to `body` on purpose. Rendered in place, a modal opened from the
+   * sticky header would be trapped in that header's stacking context: its
+   * z-index would only rank it against its siblings inside the header, and the
+   * whole header would still sit below the add button. The z-index of an
+   * element only competes within its own stacking context.
+   */
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
       <div
         className="absolute inset-0 animate-fade-in bg-black/60 backdrop-blur-sm"
@@ -103,6 +113,7 @@ export default function Modal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

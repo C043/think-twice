@@ -28,14 +28,19 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 The container runs `drizzle-kit push` and then `next dev`, with the working tree
 bind-mounted for hot reload.
 
-Production — app on <http://localhost:3000>:
+Production — app on <http://127.0.0.1:3000>:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 ```
 
 This one runs `drizzle-kit migrate` (not `push`), so the tracked migrations in
-`drizzle/` are the source of truth.
+`drizzle/` are the source of truth. Migrations are the only thing that happens at
+container start: `next build` is baked into the image, so a restart takes seconds
+instead of the length of a rebuild.
+
+Both published ports bind to loopback in production. Nothing but the host needs
+to reach them, and the app has no authentication of its own — see Deploying.
 
 Postgres only, to run the app on the host instead:
 
@@ -81,6 +86,44 @@ sudo tailscale serve --bg --https=443 http://localhost:3001
 
 That requires HTTPS certificates enabled for the tailnet, which is a separate
 setting from MagicDNS, and exposes the app to your own devices only.
+
+## Deploying
+
+Behind `tailscale serve`, which terminates TLS with a real certificate and keeps
+the app reachable by your own devices only. HTTPS is not optional: service
+workers and the Push API do not exist without it, so install prompts and
+notifications are dead over plain HTTP.
+
+On the server, fill `.env` — no `ALLOWED_DEV_ORIGINS`, no `PGADMIN_*`, no
+`NEXT_PUBLIC_APP_URL` (production derives it from `PROD_APP_URL`) — then:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+sudo tailscale serve --bg --https=443 http://127.0.0.1:3000
+tailscale serve status
+```
+
+`serve` needs HTTPS certificates enabled for the tailnet, which is a setting
+separate from MagicDNS. The first request over HTTPS is slow while the
+certificate is issued.
+
+**Never `tailscale funnel`.** That publishes to the internet, and anyone who
+finds the URL can read, add and delete objects. `serve` is tailnet-only, which is
+the only reason the missing authentication is acceptable.
+
+`NEXT_PUBLIC_VAPID_PUBLIC_KEY` must equal `VAPID_PUBLIC_KEY`: the first is
+inlined into the client bundle, the second signs on the server, and if they
+diverge subscriptions are created and then rejected. Both that key and
+`PROD_APP_URL` are build args, so changing either needs `up --build` rather than
+a restart. The private key is never a build arg — build args stay readable in the
+image history.
+
+Backups. The `postgres_data` volume survives `docker compose down`, but not
+`down -v`:
+
+```bash
+docker exec think_twice_db pg_dump -U postgres think_twice_db > tt-$(date +%F).sql
+```
 
 ## Notes for the next person
 

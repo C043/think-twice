@@ -1,11 +1,17 @@
 services:
-  app:
+  # Distinct service key from the production one. While both were called `app`,
+  # bringing up either overlay recreated the other's container, since compose
+  # matched them as the same service.
+  app-dev:
     build:
       context: .
       dockerfile: Dockerfile
+      target: dev
     container_name: think_twice_app_dev
     restart: always
     ports:
+      # Every interface on purpose, unlike production: this is the port a phone
+      # on the LAN or the tailnet connects to while developing.
       - "3001:3000"
     environment:
       - NODE_ENV=development

@@ -43,4 +43,32 @@ describe("Notification Service", () => {
     const success = await service.notify("Hello?");
     assert.strictEqual(success, false);
   });
+
+  test("should drop every provider on reset", async () => {
+    // The service is a module-level singleton, so a test that registers a
+    // provider leaks it into the next one. Reaching into the private field to
+    // clear it is what this replaces.
+    service.registerProvider(mockProvider);
+    service.reset();
+
+    const success = await service.notify("Anyone there?");
+
+    assert.strictEqual(success, false);
+    assert.strictEqual(mockProvider.wasCalled, false);
+  });
+
+  test("should accept registrations again after a reset", async () => {
+    service.reset();
+    service.registerProvider(mockProvider);
+
+    assert.strictEqual(await service.notify("Back up"), true);
+    assert.strictEqual(mockProvider.wasCalled, true);
+  });
+
+  test("should be safe to reset when empty", () => {
+    assert.doesNotThrow(() => {
+      service.reset();
+      service.reset();
+    });
+  });
 });

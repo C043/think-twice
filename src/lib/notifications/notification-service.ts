@@ -10,6 +10,15 @@ export class NotificationService {
     this.providers.push(provider);
   }
 
+  /**
+   * Empties the registry. The service is a module-level singleton, so anything
+   * registered outlives the code that registered it — tests need a way to start
+   * clean without reaching into the private field.
+   */
+  reset() {
+    this.providers = [];
+  }
+
   async notify(message: string): Promise<boolean> {
     if (this.providers.length === 0) {
       console.warn("[NOTIFICATION] No notification providers enabled.");

@@ -6,10 +6,11 @@ import test, { afterEach, beforeEach, describe } from "node:test";
 import { checkReviewsJob, notificationService } from "./scheduled-worker";
 import assert from "node:assert";
 import { randomUUID } from "node:crypto";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
 
 describe("Scheduled Worker Integration Feature", () => {
   let pg: PGlite;
-  let db: any;
+  let db: PgliteDatabase;
   let sentMessages: string[];
 
   beforeEach(async () => {
@@ -31,7 +32,7 @@ describe("Scheduled Worker Integration Feature", () => {
 
   afterEach(async () => {
     await pg.close();
-    (notificationService as any).providers = [];
+    notificationService.reset();
   });
 
   test("should process expired objects using PGlite", async () => {
@@ -98,9 +99,11 @@ describe("Scheduled Worker Integration Feature", () => {
   });
 
   test("should keep the object pending when every provider fails", async () => {
-    (notificationService as any).providers = [
-      { id: "failing-provider", send: async () => false },
-    ];
+    notificationService.reset();
+    notificationService.registerProvider({
+      id: "failing-provider",
+      send: async () => false,
+    });
 
     const pastDate = new Date();
     pastDate.setMinutes(pastDate.getMinutes() - 5);

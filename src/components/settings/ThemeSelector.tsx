@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Monitor, Moon, Sun } from "lucide-react";
+import { useHydrated } from "@/lib/use-client-state";
 
 const OPTIONS = [
   { value: "light", label: "Light", Icon: Sun },
@@ -17,11 +17,7 @@ const OPTIONS = [
  */
 export default function ThemeSelector() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const hydrated = useHydrated();
 
   return (
     <div
@@ -32,7 +28,7 @@ export default function ThemeSelector() {
       {OPTIONS.map(({ value, label, Icon }) => {
         // Before mount there is no resolved choice to highlight; rendering none
         // avoids flashing the wrong one.
-        const active = mounted && theme === value;
+        const active = hydrated && theme === value;
 
         return (
           <button

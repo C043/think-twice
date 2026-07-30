@@ -32,6 +32,51 @@ export function isStandalone(
   return nav.standalone === true || mediaMatches === true;
 }
 
+export interface PushCapabilities {
+  /** The Push API exists. False on any non-secure origin. */
+  supported: boolean;
+  /** iOS outside the Home Screen, where the Push API is absent by design. */
+  needsInstall: boolean;
+}
+
+/** Snapshot used while server rendering, where no capability can be observed. */
+export const SERVER_PUSH_CAPABILITIES: PushCapabilities = {
+  supported: false,
+  needsInstall: false,
+};
+
+let cachedCapabilities: PushCapabilities | null = null;
+
+/**
+ * Probes the browser once and keeps the answer.
+ *
+ * Feeds `useSyncExternalStore`, which compares snapshots by reference: a new
+ * object per render would make React throw. Caching is sound because none of
+ * these can change without a reload — installing to the Home Screen opens a new
+ * browsing context.
+ */
+export function probePushCapabilities(): PushCapabilities {
+  if (cachedCapabilities) {
+    return cachedCapabilities;
+  }
+
+  if (typeof window === "undefined") {
+    return SERVER_PUSH_CAPABILITIES;
+  }
+
+  const standalone = isStandalone(
+    navigator as { standalone?: boolean },
+    window.matchMedia("(display-mode: standalone)").matches,
+  );
+
+  cachedCapabilities = {
+    supported: isPushSupported(),
+    needsInstall: isIos(navigator.userAgent) && !standalone,
+  };
+
+  return cachedCapabilities;
+}
+
 export function isPushSupported(): boolean {
   return (
     typeof window !== "undefined" &&

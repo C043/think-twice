@@ -2,8 +2,9 @@
 
 import { SelectObject } from "@/db/schema";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useNow } from "@/lib/use-client-state";
 import DeleteObjectComponent from "./DeleteObjectComponent";
 import ObjectForm from "./ObjectForm";
 import Modal from "./ModalComponent";
@@ -34,15 +35,8 @@ export default function ObjectListClient({
     null,
   );
   const [loadingDelete, setLoadingDelete] = useState(false);
-  // Null until mounted: the server has no clock the client would agree with.
-  const [now, setNow] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setNow(new Date());
-
-    const interval = setInterval(() => setNow(new Date()), 10000);
-    return () => clearInterval(interval);
-  }, []);
+  // Null until hydrated: the server has no clock the client would agree with.
+  const now = useNow();
 
   const handleOpenEdit = (obj: SelectObject) => {
     setSelectedObject(obj);

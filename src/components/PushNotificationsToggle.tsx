@@ -6,40 +6,27 @@ import { toast } from "sonner";
 import Modal from "./ModalComponent";
 import { iconButton, secondaryButton } from "./ui/styles";
 import {
-  isIos,
-  isPushSupported,
-  isStandalone,
   registerServiceWorker,
   removeSubscription,
   saveSubscription,
   subscribeToPush,
 } from "@/lib/push-client";
+import { useHydrated, usePushCapabilities } from "@/lib/use-client-state";
 
 export default function PushNotificationsToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [supported, setSupported] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [needsInstall, setNeedsInstall] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
+  const hydrated = useHydrated();
+  // On iOS the Push API only exists once the app runs from the Home Screen.
+  const { supported, needsInstall } = usePushCapabilities();
+
   useEffect(() => {
-    setMounted(true);
+    if (!supported) return;
 
-    const standalone = isStandalone(
-      navigator as { standalone?: boolean },
-      window.matchMedia("(display-mode: standalone)").matches,
-    );
-
-    // On iOS the Push API only exists once the app runs from the Home Screen.
-    setNeedsInstall(isIos(navigator.userAgent) && !standalone);
-
-    if (!isPushSupported()) {
-      return;
-    }
-
-    setSupported(true);
-
+    // Genuinely asynchronous, so genuinely an effect: the answer arrives from
+    // the service worker registration rather than from reading a global.
     navigator.serviceWorker
       .getRegistration()
       .then(async (registration) => {
@@ -48,7 +35,7 @@ export default function PushNotificationsToggle() {
         setSubscribed(existing !== null);
       })
       .catch(() => {});
-  }, []);
+  }, [supported]);
 
   const enable = useCallback(async () => {
     setBusy(true);
@@ -103,7 +90,7 @@ export default function PushNotificationsToggle() {
     }
   }, []);
 
-  if (!mounted) {
+  if (!hydrated) {
     return <div className="h-10 w-10" />;
   }
 

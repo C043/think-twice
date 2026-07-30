@@ -30,12 +30,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   icons: {
-    // Engines that support it get the vector mark; favicon.ico (16/32/48) is
-    // the fallback for the rest.
-    icon: [
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "16x16 32x32 48x48 64x64" },
-    ],
+    // Engines that support it get the vector mark. The 16/32/48/64 favicon.ico
+    // fallback is not listed here: src/app/favicon.ico is a file convention, so
+    // Next already emits a <link> for it and repeating it duplicates the tag.
+    icon: { url: "/icons/icon.svg", type: "image/svg+xml" },
     apple: "/icons/apple-touch-icon.png",
   },
   other: {

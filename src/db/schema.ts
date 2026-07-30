@@ -9,12 +9,22 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
+/**
+ * Every timestamp carries a timezone.
+ *
+ * A bare `timestamp` stores a wall clock with no offset, so `created_at` written
+ * by the database clock and `review_at` written by the application ended up on
+ * two different scales whenever the two did not agree on UTC. The waiting period
+ * — the entire point of the product — was measured between them.
+ */
 export const objectsTable = pgTable("objects", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   price: integer("price").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  reviewAt: timestamp("review_at").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  reviewAt: timestamp("review_at", { withTimezone: true }).notNull(),
   notified: boolean("notified").default(false).notNull(),
 });
 
@@ -24,7 +34,9 @@ export const pushSubscriptionsTable = pgTable("push_subscriptions", {
   p256dh: text("p256dh").notNull(),
   auth: text("auth").notNull(),
   userAgent: text("user_agent"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
 /**
@@ -41,10 +53,6 @@ export const settingsTable = pgTable(
     id: integer("id").primaryKey().default(1),
     locale: text("locale").notNull().default("it-IT"),
     currency: text("currency").notNull().default("EUR"),
-    // withTimezone, unlike the older columns: a bare `timestamp` stores a wall
-    // clock, so a value written by the database and read back by a process in
-    // another timezone comes out shifted by the offset. See the note in
-    // README about the existing columns.
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

@@ -11,7 +11,11 @@ services:
       # Loopback only. Containers reach Postgres over the compose network, so
       # publishing on every interface just exposed the database to the whole LAN
       # — with the default password, on a machine that is always on.
-      - "127.0.0.1:5432:5432"
+      #
+      # The host side comes from DB_PORT because a machine that already runs
+      # Postgres, in a container or natively, owns 5432 and the bind fails. Only
+      # host-side tools need this published at all; the app never uses it.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

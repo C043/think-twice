@@ -40,20 +40,40 @@ export default function DeleteObjectComponent({
         </div>
       </div>
 
-      <div className="hidden w-full items-center gap-2 md:flex">
+      <div className="hidden w-full items-center md:flex">
         <div className="min-w-0 flex-1">{children}</div>
-        <button
-          type="button"
-          onClick={onDeleteClick}
-          aria-label={`Delete ${objectName}`}
-          title="Delete object"
-          className="mr-3 inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center
-                     rounded-xl text-muted opacity-0 transition-[opacity,background-color,color] duration-200
-                     hover:bg-red-500/10 hover:text-red-500 focus-visible:opacity-100
-                     group-hover:opacity-100"
+
+        {/*
+          Zero width at rest, so the row reserves nothing for a button that is
+          not there. Growing this column is what shrinks the flex-1 content
+          beside it, which is how the price, the date and the progress rail slide
+          across — they need no transition of their own.
+
+          This animates width, hence layout, unlike the progress rail. The cost
+          profile is the opposite though: one card, once, on an intentional
+          hover, rather than every row at once on a timer.
+
+          focus-within and not just hover: the button stays tabbable while
+          clipped, so a keyboard user has to be able to see where they are.
+        */}
+        <div
+          className="flex w-0 items-center justify-center overflow-hidden
+                     transition-[width] duration-200 ease-out
+                     group-hover:w-14 group-focus-within:w-14"
         >
-          <Trash2 className="h-4 w-4" />
-        </button>
+          <button
+            type="button"
+            onClick={onDeleteClick}
+            aria-label={`Delete ${objectName}`}
+            title="Delete object"
+            className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center
+                       rounded-xl text-muted opacity-0 transition-[opacity,background-color,color]
+                       duration-200 hover:bg-red-500/10 hover:text-red-500
+                       group-hover:opacity-100 group-focus-within:opacity-100"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

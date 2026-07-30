@@ -22,7 +22,12 @@ export class DrizzleObjectRepository {
 
   async update(
     id: string,
-    data: { name: string; price: number; reviewAt: Date },
+    data: {
+      name: string;
+      price: number;
+      reviewAt: Date;
+      notified?: boolean;
+    },
   ) {
     const [updatedRecord] = await this.db
       .update(objectsTable)

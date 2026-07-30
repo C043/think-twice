@@ -33,8 +33,8 @@ export const metadata: Metadata = {
     // Engines that support it get the vector mark; favicon.ico (16/32/48) is
     // the fallback for the rest.
     icon: [
-      { url: "/icons/logo.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48 64x64" },
     ],
     apple: "/icons/apple-touch-icon.png",
   },
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: dark)", color: "#08080a" },
   ],
   viewportFit: "cover",
 };

@@ -9,8 +9,11 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#09090b",
-    theme_color: "#09090b",
+    // The splash screen shown before the first paint, and the standalone status
+    // bar. Both track `--background` from the dark theme: the manifest only takes
+    // one value, so it commits to the theme the app is designed around.
+    background_color: "#08080a",
+    theme_color: "#08080a",
     icons: [
       {
         src: "/icons/icon-192.png",
@@ -23,6 +26,12 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
+      },
+      {
+        src: "/icons/icon-192-maskable.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
       },
       {
         src: "/icons/icon-512-maskable.png",

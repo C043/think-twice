@@ -128,6 +128,10 @@ export default function ObjectListClient({
           const progress = now
             ? progressPercentage(obj.createdAt, obj.reviewAt, now)
             : 0;
+          // A day into a 30 day wait is 3%, an hour is 0.1% — a truthful bar is
+          // sub-pixel for most of its life and reads as broken. Floor the fill
+          // so "started" always looks different from "not started".
+          const fill = progress > 0 ? Math.max(progress, 2) : 0;
           const ready = now ? isReadyToDecide(obj.reviewAt, now) : false;
 
           return (
@@ -135,7 +139,7 @@ export default function ObjectListClient({
               key={obj.id}
               style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
               className={`group animate-row-in overflow-hidden rounded-2xl border bg-surface shadow-card
-                          transition-all duration-200 hover:-translate-y-0.5 hover:shadow-float ${
+                          transition-[transform,border-color] duration-200 hover:-translate-y-0.5 ${
                             ready
                               ? "border-emerald-500/40"
                               : "border-line hover:border-line-strong"
@@ -152,53 +156,44 @@ export default function ObjectListClient({
                   onClick={() => handleOpenEdit(obj)}
                   className="w-full cursor-pointer px-4 py-3.5 text-left"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          aria-hidden
-                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                            ready
-                              ? "bg-emerald-500"
-                              : "animate-breathe bg-accent"
-                          }`}
-                        />
-                        <span className="truncate font-medium text-foreground">
-                          {obj.name}
-                        </span>
-                      </div>
-
-                      <div className="mt-1.5 pl-3.5">
-                        {!now ? (
-                          <div className="h-3.5 w-28 animate-breathe rounded bg-line" />
-                        ) : ready ? (
-                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                            Ready to decide
-                          </span>
-                        ) : (
-                          <span className="text-[13px] text-muted tabular-nums">
-                            {formatTimeLeft(obj.reviewAt, now)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 text-right">
-                      <div className="font-semibold tabular-nums text-foreground">
-                        {formatPrice(obj.price)}
-                      </div>
-                      <div className="mt-1 text-[11px] text-muted tabular-nums">
-                        {formatReviewDate(obj.reviewAt)}
-                      </div>
-                    </div>
+                  {/* Two full-width rows rather than two columns: the left and
+                      right halves of each row then share a baseline whatever
+                      their content height. */}
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="truncate font-medium text-foreground">
+                      {obj.name}
+                    </span>
+                    <span className="shrink-0 font-semibold tabular-nums text-foreground">
+                      {formatPrice(obj.price)}
+                    </span>
                   </div>
 
+                  <div className="mt-1.5 flex h-5 items-center justify-between gap-3">
+                    {!now ? (
+                      <span className="block h-3 w-24 rounded bg-line" />
+                    ) : ready ? (
+                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        Ready to decide
+                      </span>
+                    ) : (
+                      <span className="truncate text-[13px] text-muted tabular-nums">
+                        {formatTimeLeft(obj.reviewAt, now)}
+                      </span>
+                    )}
+
+                    <span className="shrink-0 text-[11px] text-muted tabular-nums">
+                      {formatReviewDate(obj.reviewAt)}
+                    </span>
+                  </div>
+
+                  {/* scaleX, not width: width animates on the layout thread and
+                      every tick would re-lay-out each row. */}
                   <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-line">
                     <div
-                      className={`h-full rounded-full transition-[width] duration-1000 ease-out ${
+                      className={`h-full w-full origin-left rounded-full transition-transform duration-700 ease-out ${
                         ready ? "bg-emerald-500" : "bg-accent"
                       }`}
-                      style={{ width: `${progress}%` }}
+                      style={{ transform: `scaleX(${fill / 100})` }}
                     />
                   </div>
                 </button>

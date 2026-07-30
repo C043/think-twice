@@ -8,7 +8,10 @@ export default function Home() {
   return (
     <div className="relative z-10 flex min-h-dvh flex-col items-center">
       {/* Glassy bar so the controls stay reachable while the list scrolls. */}
-      <header className="sticky top-0 z-30 w-full border-b border-line/60 bg-background/70 backdrop-blur-xl">
+      {/* Opaque, no backdrop-filter: blurring what is behind a sticky bar means
+          re-reading and re-blurring that region on every scroll frame, which is
+          the single most expensive thing a header can do. */}
+      <header className="sticky top-0 z-30 w-full border-b border-line bg-background">
         <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-5 py-3">
           <div className="flex items-baseline gap-2">
             <h1 className="text-[17px] font-semibold tracking-tight text-foreground">

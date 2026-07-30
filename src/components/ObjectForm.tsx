@@ -149,7 +149,7 @@ export default function ObjectForm({
                 type="button"
                 onClick={() => setReviewDays(preset.days.toString())}
                 aria-pressed={active}
-                className={`h-10 cursor-pointer rounded-xl border text-[13px] font-semibold transition-all duration-200 ${
+                className={`h-10 cursor-pointer rounded-xl border text-[13px] font-semibold transition-[background-color,border-color,color] duration-200 ${
                   active
                     ? "border-accent bg-accent-soft text-accent"
                     : "border-line bg-surface-muted text-muted hover:border-line-strong hover:text-foreground"

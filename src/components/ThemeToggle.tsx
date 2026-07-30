@@ -27,12 +27,12 @@ export default function ThemeToggle() {
       aria-label="Change theme"
     >
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out ${isDark ? "translate-y-0 opacity-100" : "translate-y-full opacity-100"}`}
+        className={`absolute inset-0 flex items-center justify-center transition-transform duration-300 ease-in-out ${isDark ? "translate-y-0 opacity-100" : "translate-y-full opacity-100"}`}
       >
         <Sun className="h-5 w-5 text-amber-500" />
       </div>
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out ${isDark ? "-translate-y-full opacity-100" : "translate-y-0 opacity-100"}`}
+        className={`absolute inset-0 flex items-center justify-center transition-transform duration-300 ease-in-out ${isDark ? "-translate-y-full opacity-100" : "translate-y-0 opacity-100"}`}
       >
         <Moon className="h-5 w-5 text-indigo-500" />
       </div>

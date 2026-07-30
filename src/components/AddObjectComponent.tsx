@@ -41,18 +41,20 @@ export default function AddObjectComponent() {
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(1.75rem,env(safe-area-inset-bottom))]">
-        {/* Fade so rows scrolling under the button stay readable. */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent" />
-
+      {/* Sized to the button, not to the viewport: a full-width fixed wrapper
+          is a compositing layer the size of the screen that has to be blended
+          over the scrolling list every frame. The gradient fade that used to
+          live here cost the same and the shadow already separates the button
+          from the rows. */}
+      <div className="pointer-events-none fixed bottom-[max(1.75rem,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2">
         <button
           type="button"
           onClick={openModal}
           aria-label="Add object"
-          className="pointer-events-auto relative flex h-14 items-center gap-2 rounded-full bg-accent
-                     px-5 text-[15px] font-semibold text-white shadow-float transition-all
-                     duration-200 hover:brightness-110 hover:-translate-y-0.5 active:scale-95
-                     cursor-pointer"
+          className="pointer-events-auto relative flex h-14 cursor-pointer items-center gap-2 rounded-full
+                     bg-accent px-5 text-[15px] font-semibold text-white shadow-float
+                     transition-[background-color,transform] duration-200
+                     hover:-translate-y-0.5 hover:bg-[var(--accent-hover)] active:scale-95"
         >
           <Plus className="h-5 w-5" strokeWidth={2.5} />
           <span>Add object</span>

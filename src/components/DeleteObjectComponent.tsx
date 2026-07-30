@@ -48,7 +48,7 @@ export default function DeleteObjectComponent({
           aria-label={`Delete ${objectName}`}
           title="Delete object"
           className="mr-3 inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center
-                     rounded-xl text-muted opacity-0 transition-all duration-200
+                     rounded-xl text-muted opacity-0 transition-[opacity,background-color,color] duration-200
                      hover:bg-red-500/10 hover:text-red-500 focus-visible:opacity-100
                      group-hover:opacity-100"
         >

@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
+import { toErrorResponse } from "@/errors/AppError";
 import { db as realDb } from "@/db/client";
+import type { AppDatabase } from "@/db/types";
 import { DrizzlePushSubscriptionRepository } from "@/repositories/drizzle-push-subscription-repository";
 import { SavePushSubscriptionUseCase } from "@/use-cases/save-push-subscription";
 import { DeletePushSubscriptionUseCase } from "@/use-cases/delete-push-subscription";
 import { SelectPushSubscriptionsUseCase } from "@/use-cases/select-push-subscriptions";
 
-export async function handlePost(request: Request, db = realDb) {
+export async function handlePost(request: Request, db: AppDatabase = realDb) {
   try {
     const body = await request.json();
 
@@ -22,9 +24,9 @@ export async function handlePost(request: Request, db = realDb) {
     });
 
     return NextResponse.json({ message: "Subscribed" }, { status: 201 });
-  } catch (err: any) {
-    const status = err.status || 500;
-    return NextResponse.json({ error: err.message }, { status });
+  } catch (err) {
+    const { status, message } = toErrorResponse(err);
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
   return handlePost(request, realDb);
 }
 
-export async function handleDelete(request: Request, db = realDb) {
+export async function handleDelete(request: Request, db: AppDatabase = realDb) {
   try {
     const body = await request.json();
 
@@ -45,9 +47,9 @@ export async function handleDelete(request: Request, db = realDb) {
     await deletePushSubscriptionUseCase.execute(body.endpoint);
 
     return NextResponse.json({ message: "Unsubscribed" }, { status: 200 });
-  } catch (err: any) {
-    const status = err.status || 500;
-    return NextResponse.json({ error: err.message }, { status });
+  } catch (err) {
+    const { status, message } = toErrorResponse(err);
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
@@ -55,7 +57,7 @@ export async function DELETE(request: Request) {
   return handleDelete(request, realDb);
 }
 
-export async function handleSelect(request: Request, db = realDb) {
+export async function handleSelect(request: Request, db: AppDatabase = realDb) {
   try {
     const repository = new DrizzlePushSubscriptionRepository(db);
 
@@ -67,9 +69,9 @@ export async function handleSelect(request: Request, db = realDb) {
 
     // Endpoints are bearer-like credentials: never send them back to a client.
     return NextResponse.json({ count: subscriptions.length }, { status: 200 });
-  } catch (err: any) {
-    const status = err.status || 500;
-    return NextResponse.json({ error: err.message }, { status });
+  } catch (err) {
+    const { status, message } = toErrorResponse(err);
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

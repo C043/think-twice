@@ -5,7 +5,9 @@ import {
   integer,
   timestamp,
   boolean,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const objectsTable = pgTable("objects", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -25,6 +27,31 @@ export const pushSubscriptionsTable = pgTable("push_subscriptions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/**
+ * Application settings, constrained to exactly one row.
+ *
+ * `locale` and `currency` are kept apart on purpose: they are orthogonal, and
+ * both are needed server-side because prices and dates are formatted during SSR
+ * too. A value that only lived in the browser would hydrate against different
+ * markup.
+ */
+export const settingsTable = pgTable(
+  "settings",
+  {
+    id: integer("id").primaryKey().default(1),
+    locale: text("locale").notNull().default("it-IT"),
+    currency: text("currency").notNull().default("EUR"),
+    // withTimezone, unlike the older columns: a bare `timestamp` stores a wall
+    // clock, so a value written by the database and read back by a process in
+    // another timezone comes out shifted by the offset. See the note in
+    // README about the existing columns.
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [check("settings_singleton", sql`${table.id} = 1`)],
+);
+
 export type InsertObject = typeof objectsTable.$inferInsert;
 export type SelectObject = typeof objectsTable.$inferSelect;
 
@@ -32,3 +59,6 @@ export type InsertPushSubscription =
   typeof pushSubscriptionsTable.$inferInsert;
 export type SelectPushSubscription =
   typeof pushSubscriptionsTable.$inferSelect;
+
+export type InsertSettings = typeof settingsTable.$inferInsert;
+export type SelectSettings = typeof settingsTable.$inferSelect;

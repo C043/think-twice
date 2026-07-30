@@ -103,6 +103,9 @@ sudo tailscale serve --bg --https=443 http://127.0.0.1:3000
 tailscale serve status
 ```
 
+If 3000 is taken on that machine, set `APP_PORT` in `.env` and point `serve` at
+the same number — the port inside the container is always 3000.
+
 `serve` needs HTTPS certificates enabled for the tailnet, which is a setting
 separate from MagicDNS. The first request over HTTPS is slow while the
 certificate is issued.

@@ -17,7 +17,11 @@ services:
       # localhost, so nothing else needs to reach this port. Published on every
       # interface it would also answer over plain HTTP on the LAN, bypassing
       # Tailscale entirely — and the app has no authentication of its own.
-      - "127.0.0.1:3000:3000"
+      #
+      # The host side comes from APP_PORT so a deployment whose 3000 is taken
+      # sets it in .env rather than editing this tracked file and conflicting on
+      # every pull. The container side is fixed by the Dockerfile.
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-secret_password}@postgres:5432/${DB_NAME:-think_twice_db}?schema=public

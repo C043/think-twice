@@ -8,7 +8,10 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret_password}
       POSTGRES_DB: ${DB_NAME:-think_twice_db}
     ports:
-      - "5432:5432"
+      # Loopback only. Containers reach Postgres over the compose network, so
+      # publishing on every interface just exposed the database to the whole LAN
+      # — with the default password, on a machine that is always on.
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

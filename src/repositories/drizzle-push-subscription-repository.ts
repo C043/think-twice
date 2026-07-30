@@ -1,9 +1,10 @@
 import { pushSubscriptionsTable } from "@/db/schema";
 import { InsertPushSubscription, SelectPushSubscription } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import type { AppDatabase } from "@/db/types";
 
 export class DrizzlePushSubscriptionRepository {
-  constructor(private db: any) {}
+  constructor(private db: AppDatabase) {}
 
   async create(
     data: Omit<InsertPushSubscription, "id" | "createdAt">,

@@ -1,6 +1,7 @@
 import { objectsTable } from "@/db/schema";
 import { and, lt, eq } from "drizzle-orm";
 import cron from "node-cron";
+import type { AppDatabase } from "@/db/types";
 import { NotificationService } from "./notifications/notification-service";
 import { TelegramProvider } from "./notifications/providers/telegram";
 import { WebPushProvider } from "./notifications/providers/web-push";
@@ -43,7 +44,7 @@ async function sendNotification(objectName: string): Promise<boolean> {
   );
 }
 
-export async function checkReviewsJob(db?: any) {
+export async function checkReviewsJob(db?: AppDatabase) {
   try {
     const now = new Date();
 

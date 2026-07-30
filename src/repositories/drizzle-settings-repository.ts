@@ -1,11 +1,12 @@
 import { settingsTable } from "@/db/schema";
 import { SelectSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import type { AppDatabase } from "@/db/types";
 
 const SETTINGS_ROW_ID = 1;
 
 export class DrizzleSettingsRepository {
-  constructor(private db: any) {}
+  constructor(private db: AppDatabase) {}
 
   /**
    * Settings are a single row that may not exist yet. Rather than requiring a

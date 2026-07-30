@@ -1,9 +1,10 @@
 import { objectsTable } from "@/db/schema";
 import { InsertObject, SelectObject } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import type { AppDatabase } from "@/db/types";
 
 export class DrizzleObjectRepository {
-  constructor(private db: any) {}
+  constructor(private db: AppDatabase) {}
 
   async create(
     data: Omit<InsertObject, "id" | "createdAt">,

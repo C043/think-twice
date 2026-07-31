@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+import ZoomGuard from "@/components/ZoomGuard";
 import ThemedToaster from "@/components/ThemedToaster";
 import { SettingsProvider } from "@/components/SettingsProvider";
 import { readSettings } from "@/lib/read-settings";
@@ -55,6 +56,12 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: dark)", color: "#08080a" },
   ],
   viewportFit: "cover",
+  // The app is a fixed-width mobile layout; a pinch or a double tap only ever
+  // leaves it stranded off-centre. Standalone iOS honours these; in-browser iOS
+  // ignores them, which is why the controls also carry a 16px floor (the focus
+  // zoom is triggered by small text, not by the scale settings).
+  maximumScale: 1,
+  userScalable: false,
 };
 
 /**
@@ -89,6 +96,7 @@ export default async function RootLayout({
           </SettingsProvider>
         </ThemeProvider>
         <ServiceWorkerRegistrar />
+        <ZoomGuard />
       </body>
     </html>
   );

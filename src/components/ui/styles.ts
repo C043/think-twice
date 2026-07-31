@@ -37,7 +37,11 @@ export const dangerButton =
 export const fieldLabel =
   "block text-xs font-semibold uppercase tracking-wider text-muted";
 
+/**
+ * The 16px text size is load-bearing, not taste: iOS zooms the whole viewport in
+ * when a focused control's text is smaller than that, and never zooms back out.
+ */
 export const fieldInput =
-  "h-12 w-full rounded-xl border border-line bg-surface-muted px-3.5 text-[15px] " +
+  "h-12 w-full rounded-xl border border-line bg-surface-muted px-3.5 text-base " +
   "text-foreground placeholder:text-muted/60 transition-[background-color,border-color,box-shadow] duration-200 " +
   "focus:border-accent focus:bg-surface focus:ring-4 focus:ring-accent/15 focus:outline-none";

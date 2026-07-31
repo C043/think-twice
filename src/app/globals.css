@@ -149,6 +149,37 @@
   }
 }
 
+/* Zoom guards, deliberately unlayered so they outrank any text-* utility that
+   ends up on a control — Tailwind emits utilities inside a cascade layer, and
+   unlayered rules beat every layer.
+
+   Below 16px iOS zooms the viewport in as soon as a control takes focus, and it
+   never zooms back out; `touch-action: manipulation` drops the double-tap-to-
+   zoom gesture on tappable elements while leaving normal taps and scrolling
+   untouched. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+a,
+button,
+input,
+select,
+textarea,
+label,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* Pinch-to-zoom, on the engines that route it through touch events. Panning is
+   listed explicitly so scrolling survives; Safari needs ZoomGuard on top of
+   this because it handles pinch through its own gesture events. */
+html {
+  touch-action: pan-x pan-y;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -28,9 +28,14 @@ interface ObjectFormProps {
   onSuccess: () => void;
 }
 
+/**
+ * Months only. Anything shorter is a rounding error against a purchase you are
+ * trying to talk yourself out of, and the day field below still takes 7 for the
+ * rare case where a week is genuinely what you want.
+ */
 const DAY_PRESETS = [
-  { days: 7, label: "1 week" },
   { days: 30, label: "1 month" },
+  { days: 60, label: "2 months" },
   { days: 90, label: "3 months" },
 ];
 
@@ -125,7 +130,7 @@ export default function ObjectForm({
             puts the euro after the amount, en-US puts the dollar before it. */}
         <div className="relative">
           <span
-            className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-[15px] text-muted ${
+            className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-base text-muted ${
               affix.position === "prefix" ? "left-3.5" : "right-3.5"
             }`}
           >

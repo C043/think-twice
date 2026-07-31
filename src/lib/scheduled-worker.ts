@@ -62,10 +62,9 @@ export async function checkReviewsJob(db?: AppDatabase) {
         and(lt(objectsTable.reviewAt, now), eq(objectsTable.notified, false)),
       );
 
-    if (expiredObjects.length === 0) {
-      console.log("No new expired objects found.");
-      return;
-    }
+    // Silent on the empty case: the job runs every minute and almost every run
+    // finds nothing, so logging it buries the runs that did send something.
+    if (expiredObjects.length === 0) return;
 
     console.log(`[WORKER] Found ${expiredObjects.length} expired objects.`);
 

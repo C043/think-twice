@@ -51,13 +51,12 @@ export default function AddObjectComponent() {
           type="button"
           onClick={openModal}
           aria-label="Add object"
-          className="pointer-events-auto relative flex h-14 cursor-pointer items-center gap-2 rounded-full
-                     bg-accent px-5 text-[15px] font-semibold text-white shadow-float
+          className="pointer-events-auto relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-full
+                     bg-accent text-white shadow-float
                      transition-[background-color,transform] duration-200
                      hover:-translate-y-0.5 hover:bg-[var(--accent-hover)] active:scale-95"
         >
-          <Plus className="h-5 w-5" strokeWidth={2.5} />
-          <span>Add object</span>
+          <Plus className="h-6 w-6" strokeWidth={2.5} />
         </button>
       </div>
 

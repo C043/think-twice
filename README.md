@@ -4,8 +4,14 @@ Think Twice is a self hosted software and its objective is to solve compulsive s
 The user adds the object he desires and sets a timer on it.
 If by the end of that timer the user still wants that object, it means that he really wants it or needs it.
 
+The waiting presets are one, two and three months; the day field next to them
+takes any other number for the rare case where a shorter wait is genuinely what
+you want.
+
 When the timer runs out a worker sends a notification, over web push and
-optionally Telegram, asking whether the object is still wanted.
+optionally Telegram, asking whether the object is still wanted. The job runs
+once a minute from `instrumentation.ts`, inside the app process — there is no
+second container to deploy.
 
 ## Stack
 
@@ -51,7 +57,11 @@ npm run dev            # http://localhost:3000
 ```
 
 That path needs `DATABASE_URL` pointing at `localhost`, since the `postgres`
-hostname only resolves inside the Compose network.
+hostname only resolves inside the Compose network. If the machine already runs
+something on 5432 the bind fails, so set `DB_PORT` in `.env` and use the same
+number in `DATABASE_URL`. Only host-side tools like `drizzle-kit` and `psql`
+ever use that published port; the containers reach the database over the Compose
+network.
 
 ## Tests
 
@@ -60,6 +70,21 @@ npm test               # every *.test.ts under tests/ and src/
 npx tsc --noEmit
 npm run lint
 ```
+
+## Icons
+
+Every PWA icon, the apple-touch icon and `favicon.ico` are generated from the
+vector master `think_twice.svg`. After changing it:
+
+```bash
+npm run icons
+```
+
+The master is a landscape wordmark on a transparent canvas, which is a poor
+square icon on its own: launchers crop maskable icons to circles and squircles
+and would clip the outer bars. The script sits the mark on a full-bleed indigo
+plate and re-centres it per target, so nothing hand-edited belongs in
+`public/icons/`.
 
 ## Opening it from a phone
 
@@ -143,9 +168,33 @@ When drizzle-kit generates a timestamp type change it emits a bare
 timezone happens to be. Migration `0004` adds the explicit
 `USING ... AT TIME ZONE 'UTC'` by hand; keep doing that.
 
-**Pages are `force-dynamic`.** A database query is not something Next treats as
-a reason to render dynamically, so without it the object list and the settings
-get prerendered at build time and keep serving whatever the database held then.
+**The root layout is `force-dynamic`.** A database query is not something Next
+treats as a reason to render dynamically, so without it the object list and the
+settings get prerendered at build time and keep serving whatever the database
+held then. The flag sits on the layout, once, because every page below it reads
+live rows.
+
+**Keeping iOS from zooming takes four separate things.** Each covers a case the
+others do not, so removing any one of them brings the zoom back:
+
+- `maximumScale: 1` and `userScalable: false` in the viewport export. Honoured
+  by standalone iOS, ignored by iOS Safari proper.
+- A 16px floor on every control (`input`, `select`, `textarea` in `globals.css`,
+  and `fieldInput` in `ui/styles.ts`). Below that iOS zooms the viewport in when
+  a control takes focus and never zooms back out. The rules are deliberately
+  unlayered so they outrank any Tailwind `text-*` utility.
+- `touch-action` in `globals.css`: `manipulation` on tappable elements drops
+  double-tap-to-zoom, `pan-x pan-y` on `html` drops pinch on the engines that
+  implement it through touch events.
+- `ZoomGuard`, which preventDefaults Safari's non-standard `gesture*` events and
+  multi-touch `touchmove`. Its listeners must stay non-passive: touch listeners
+  are passive by default and a passive listener's preventDefault is ignored.
+
+**Safe-area insets are on the header and both mains.** They read as zero with
+`statusBarStyle: "default"`, which is the point — they are what keeps the layout
+clear of the notch in landscape and what would save it if the status bar style
+ever went translucent. `themeColor` has to match the `--background` tokens
+exactly, or iOS tints the status bar strip a shade off the header.
 
 **Settings live in two places on purpose.** Theme is in `localStorage`, because
 reading it from the server would flash the wrong one on every load. Locale and

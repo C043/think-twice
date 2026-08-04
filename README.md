@@ -1,3 +1,5 @@
+![The object list: three objects on hold, one of them ready to decide](docs/screenshot.png)
+
 ## Introduction
 This project is a WIP.
 Think Twice is a self hosted software and its objective is to solve compulsive shopping.

@@ -146,10 +146,26 @@
 
         // A HEAD to the root with cache: "no-store" tells us the server is
         // answering again without pulling the whole document twice.
+        //
+        // The abort matters as much as the request. The failure this page is
+        // shown for is a connection that hangs rather than one that is refused,
+        // so an unbounded fetch would leave `checking` stuck at true and kill
+        // every later attempt — the auto-recovery would die on exactly the
+        // failure it exists for.
         function probe() {
           if (checking) return Promise.resolve(false);
           checking = true;
-          return fetch("/", { method: "HEAD", cache: "no-store" })
+
+          var controller = new AbortController();
+          var timer = setTimeout(function () {
+            controller.abort();
+          }, 4000);
+
+          return fetch("/", {
+            method: "HEAD",
+            cache: "no-store",
+            signal: controller.signal,
+          })
             .then(function (res) {
               return res.ok;
             })
@@ -157,6 +173,7 @@
               return false;
             })
             .then(function (ok) {
+              clearTimeout(timer);
               checking = false;
               return ok;
             });

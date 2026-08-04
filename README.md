@@ -214,6 +214,16 @@ reopening the app was the only way out. The fallback polls `/` every five
 seconds and on the `online` event, then replaces itself once the server answers,
 so the recovery needs no user at all.
 
+**The navigation timeout is the part that actually fires.** A refused connection
+rejects `fetch` immediately and would reach a plain `.catch()`, but that is the
+rare case. The common one over a tailnet is a connection that hangs: the path to
+the phone goes stale on a network change or a wake from idle, the SYN is dropped
+rather than answered, and `fetch` — which has no timeout — waits forever with no
+error to catch. `NAVIGATION_TIMEOUT_MS` turns that silence into a failure. Both
+probes in `offline.html` are bounded for the same reason; an unbounded one would
+leave the retry flag stuck and kill the recovery on exactly the failure it is
+there for.
+
 Nothing else is cached, deliberately. Every route below the root layout is
 `force-dynamic`, and a cached one would serve an object list from whenever it
 was stored — a wrong countdown is worse than a visible failure. Bump `CACHE` in

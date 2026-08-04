@@ -2,8 +2,20 @@
 
 // Bump this to retire the previous cache. `activate` deletes every cache whose
 // name does not match, so a stale offline page never outlives a deploy.
-const CACHE = "think-twice-offline-v1";
+const CACHE = "think-twice-offline-v2";
 const OFFLINE_URL = "/offline.html";
+
+// `fetch` has no timeout of its own. A refused connection rejects it in
+// milliseconds, but a dropped one does not: when the tailnet path to the phone
+// goes stale — a network change, a wake from idle — the SYN vanishes instead of
+// being answered, and the navigation hangs indefinitely with no error to catch.
+// That hang is the blank spinner this fallback exists to replace, so treat
+// silence past this point as a failure.
+//
+// Generous on purpose: the app answers in tens of milliseconds on the LAN, but
+// a first request relayed through DERP is far slower, and cutting off a load
+// that would have succeeded is the worse mistake.
+const NAVIGATION_TIMEOUT_MS = 8000;
 
 // The page and the one image it shows. Nothing else: every real route is
 // force-dynamic and caching one would serve a stale object list, which is worse
@@ -48,13 +60,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Promise.race rather than an AbortController: aborting means re-creating the
+  // request, and a request whose mode is "navigate" cannot be rebuilt without
+  // silently downgrading that mode. The losing fetch is left to finish into
+  // nothing, which costs one abandoned socket and breaks no semantics.
   event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(OFFLINE_URL).then(
-        (cached) =>
-          cached ||
-          Response.error(),
-      ),
+    Promise.race([
+      fetch(event.request).catch(() => null),
+      new Promise((resolve) => setTimeout(() => resolve(null), NAVIGATION_TIMEOUT_MS)),
+    ]).then(
+      (response) =>
+        response ||
+        caches.match(OFFLINE_URL).then((cached) => cached || Response.error()),
     ),
   );
 });

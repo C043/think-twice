@@ -1,18 +1,63 @@
 /// <reference lib="webworker" />
 
+// Bump this to retire the previous cache. `activate` deletes every cache whose
+// name does not match, so a stale offline page never outlives a deploy.
+const CACHE = "think-twice-offline-v1";
+const OFFLINE_URL = "/offline.html";
+
+// The page and the one image it shows. Nothing else: every real route is
+// force-dynamic and caching one would serve a stale object list, which is worse
+// than the failure this is here to soften.
+const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png"];
+
 // Take control as soon as a new worker is installed, so a deployed fix does not
 // wait for every tab to be closed first.
-self.addEventListener("install", () => {
-  self.skipWaiting();
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(PRECACHE))
+      // A precache miss must not block installation: without an active worker
+      // there are no push notifications either, and that is the costlier loss.
+      .catch(() => {})
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))),
+      )
+      .then(() => self.clients.claim()),
+  );
 });
 
 // Chrome only treats the app as installable when the service worker owns a
-// fetch handler. Nothing is cached: requests go straight to the network.
-self.addEventListener("fetch", () => {});
+// fetch handler, and a standalone iOS window has no address bar — so a
+// navigation that cannot reach the server leaves a blank screen with no way to
+// retry. Navigations fall back to the cached offline page, which polls and
+// reloads itself once the server answers again.
+//
+// Only navigations are touched. Everything else goes straight to the network,
+// unchanged and uncached.
+self.addEventListener("fetch", (event) => {
+  if (event.request.mode !== "navigate") {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request).catch(() =>
+      caches.match(OFFLINE_URL).then(
+        (cached) =>
+          cached ||
+          Response.error(),
+      ),
+    ),
+  );
+});
 
 self.addEventListener("push", (event) => {
   // iOS revokes the subscription if a push does not surface a notification,

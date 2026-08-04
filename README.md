@@ -203,3 +203,20 @@ too and a browser-only value would hydrate against different markup.
 
 **Formatting takes locale and currency as arguments.** Never an ambient default:
 an implicit locale resolves differently in Node and in the browser.
+
+**The service worker caches one page, and only for navigations.** `sw.js`
+precaches `/offline.html` and serves it when a navigation cannot reach the
+server. Standalone iOS has no address bar, so before this a launch that lost the
+tailnet for a second left a blank screen with nothing to tap — closing and
+reopening the app was the only way out. The fallback polls `/` every five
+seconds and on the `online` event, then replaces itself once the server answers,
+so the recovery needs no user at all.
+
+Nothing else is cached, deliberately. Every route below the root layout is
+`force-dynamic`, and a cached one would serve an object list from whenever it
+was stored — a wrong countdown is worse than a visible failure. Bump `CACHE` in
+`sw.js` when `offline.html` changes; `activate` deletes every cache that does
+not match the current name.
+
+`public/` is copied into the image at build time, so a change to either file
+needs `up --build`, not a restart.

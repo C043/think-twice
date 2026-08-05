@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Settings } from "lucide-react";
 import AddObjectComponent from "@/components/AddObjectComponent";
 import ObjectList from "@/components/ObjectList";
+import ObjectListSkeleton from "@/components/ObjectListSkeleton";
 import PushNotificationsToggle from "@/components/PushNotificationsToggle";
 import InstallPwaButton from "@/components/InstallPwaButton";
 import { iconButton } from "@/components/ui/styles";
@@ -59,7 +61,14 @@ export default function Home() {
           </p>
         </div>
 
-        <ObjectList />
+        {/* The header, the heading and the add button do not depend on the
+            database, so they are sent as soon as they render and the list
+            streams in behind them. Without the boundary the whole document
+            waits on the query, and a cold Postgres connection is long enough
+            for that to look like a broken app. */}
+        <Suspense fallback={<ObjectListSkeleton />}>
+          <ObjectList />
+        </Suspense>
       </main>
 
       <AddObjectComponent />

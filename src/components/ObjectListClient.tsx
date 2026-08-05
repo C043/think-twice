@@ -166,7 +166,7 @@ export default function ObjectListClient({
 
                   <div className="mt-1.5 flex h-5 items-center justify-between gap-3">
                     {!now ? (
-                      <span className="block h-3 w-24 rounded bg-line" />
+                      <span className="skeleton block h-3 w-24 rounded" />
                     ) : ready ? (
                       <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                         Ready to decide

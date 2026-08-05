@@ -26,6 +26,11 @@
   --shadow-float: 0 6px 16px -6px rgb(9 9 11 / 0.2),
     0 18px 48px -18px rgb(9 9 11 / 0.35);
   --glow: radial-gradient(60% 60% at 50% 0%, rgb(99 102 241 / 0.1), transparent 70%);
+  /* Placeholder blocks sit a step above --line: on white cards a border-coloured
+     block is almost invisible, and a skeleton that cannot be seen is a blank
+     screen with extra markup. The sheen is what sweeps across them. */
+  --skeleton: #e4e4e8;
+  --skeleton-sheen: rgb(255 255 255 / 0.85);
 }
 
 /* `:root.dark` and not `html:where(.dark)`: :where() contributes zero
@@ -47,6 +52,8 @@
   --shadow-float: 0 8px 20px -8px rgb(0 0 0 / 0.7),
     0 24px 56px -24px rgb(0 0 0 / 0.9);
   --glow: radial-gradient(60% 60% at 50% 0%, rgb(129 140 248 / 0.14), transparent 70%);
+  --skeleton: #22222a;
+  --skeleton-sheen: rgb(255 255 255 / 0.06);
 }
 
 @theme inline {
@@ -100,6 +107,46 @@
   from {
     opacity: 0;
     transform: translateY(6px);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/**
+ * Placeholder block: `skeleton` plus whatever size and radius the real thing
+ * has. One utility rather than a component, for the same reason ui/styles.ts
+ * holds strings — the markup around a placeholder is always just a span.
+ *
+ * The sweep is a pseudo-element moved with translateX, not an animated
+ * background-position: a transform runs on the compositor, so a list of twenty
+ * placeholders costs the main thread nothing while it is still fetching. The
+ * reduced-motion rule below parks the pseudo-element off its own box, leaving a
+ * flat block.
+ */
+@utility skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--skeleton);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--skeleton-sheen),
+      transparent
+    );
+    animation: shimmer 1.6s ease-in-out infinite;
   }
 }
 
